@@ -25,3 +25,8 @@
 - 掌握 SQLAlchemy ORM 的使用
 - 学习前后端分离架构的基本实现
 - 实践用户注册, 登录, 会话管理等功能
+
+## 资料
+
+- [FastAPI-Users-项目概览与维护模式说明.md](https://raw.githubusercontent.com/MacHu-GWU/learn_fastapi_auth-project/refs/heads/main/docs/source/FastAPI-Users-%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%A7%88%E4%B8%8E%E7%BB%B4%E6%8A%A4%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E.md)
+- [通过学习 fastapi-users, 深入学习 WebApp 的登录流程](https://sanhehu.atlassian.net/wiki/spaces/TECHGARDEN/pages/593494018/fastapi-users+WebApp)
