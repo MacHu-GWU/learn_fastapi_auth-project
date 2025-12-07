@@ -15,7 +15,7 @@ maintainers = [
     { name = "Sanhe Hu", email = "husanhe@gmail.com" },
 ]
 keywords = []
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.12,<3.13"
 # Full list of classifiers: https://pypi.org/classifiers/
 classifiers = [
@@ -40,7 +40,8 @@ dependencies = [
     "soft_deps>=0.1.1,<1.0.0", # Lazy import optional dependencies
     "boltons>=25.0.0,<26.0.0", # Utility functions for Python
     "SQLAlchemy>=2.0.44,<3.0.0",
-    "fastapi>=0.123.10",
+    "fastapi>=0.123.10,<1.0.0",
+    "fastapi-users>=15.0.1,<16.0.0",
 ]
 
 # ------------------------------------------------------------------------------
