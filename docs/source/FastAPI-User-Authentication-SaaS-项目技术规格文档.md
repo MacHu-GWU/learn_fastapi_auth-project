@@ -1,80 +1,59 @@
 # FastAPI User Authentication SaaS - 项目技术规格文档
 
-## 📋 项目概述
+> 本文档为项目实现指南。项目概述、技术栈和开发方式详见 [README.md](../../README.md)
 
-**项目名称**: FastAPI Authentication Learning Project  
-**项目类型**: SaaS 用户认证系统学习项目  
-**目标**: 构建一个完整的用户注册、登录、资源访问的 Web 应用
+## 核心功能需求
 
-**核心功能**:
 - 用户注册（邮箱 + 密码）
-- 邮箱验证
-- 用户登录
-- 用户专属资源管理（文本数据）
-
----
-
-## 🏗️ 技术栈
-
-### 后端
-- **框架**: FastAPI
-- **认证库**: fastapi-users
-- **ORM**: SQLAlchemy
-- **数据库**: SQLite (本地文件)
-- **模板引擎**: Jinja2
-- **邮件**: Gmail SMTP (应用专用密码)
-- **密码哈希**: bcrypt (通过 fastapi-users)
-
-### 前端
-- **技术**: HTML + CSS + JavaScript (原生，无框架)
-- **渲染方式**: Jinja2 服务端渲染 + 客户端 JavaScript 交互
-- **样式**: 自定义 CSS (简洁风格)
-
-### 开发工具
-- **包管理**: mise (管理 Python 版本和依赖)
-- **依赖管理**: pyproject.toml
-- **环境变量**: python-dotenv (.env 文件)
+- 邮箱验证（发送验证邮件）
+- 用户登录（JWT token）
+- 用户专属资源管理（文本数据的读写）
 
 ---
 
 ## 📁 项目结构
 
 ```
-fastapi-auth-project/
-├── .env                      # 环境变量配置 (不提交到 git)
-├── .env.example              # 环境变量示例
-├── .gitignore
-├── pyproject.toml            # Python 依赖配置
-├── README.md
-├── main.py                   # FastAPI 应用入口
-├── app/
+learn_fastapi_auth-project/
+├── learn_fastapi_auth/          # 主应用包
 │   ├── __init__.py
-│   ├── config.py             # 配置管理
-│   ├── database.py           # 数据库连接
-│   ├── models.py             # SQLAlchemy 模型
-│   ├── schemas.py            # Pydantic schemas
+│   ├── paths.py                 # 路径管理（使用 PathEnum）
+│   ├── config.py                # 配置管理（从 .env 读取）
+│   ├── database.py              # 数据库连接和初始化
+│   ├── models.py                # SQLAlchemy ORM 模型
+│   ├── schemas.py               # Pydantic schemas
 │   ├── auth/
 │   │   ├── __init__.py
-│   │   ├── users.py          # fastapi-users 配置
-│   │   └── email.py          # 邮件发送功能
+│   │   ├── users.py             # fastapi-users 配置
+│   │   └── email.py             # 邮件发送功能
 │   ├── routers/
 │   │   ├── __init__.py
-│   │   ├── pages.py          # 页面路由 (返回 HTML)
-│   │   └── api.py            # API 路由 (用户数据 CRUD)
-│   └── templates/            # Jinja2 模板
-│       ├── base.html         # 基础模板
-│       ├── index.html        # 主页
-│       ├── signup.html       # 注册页面
-│       ├── signin.html       # 登录页面
-│       ├── app.html          # 用户 App 页面
-│       └── verify_email.html # 邮箱验证成功页面
-├── static/                   # 静态文件
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── auth.js           # 认证相关 JS
-│       └── app.js            # App 页面 JS
-└── data.db                   # SQLite 数据库文件 (自动生成)
+│   │   ├── pages.py             # 页面路由（返回 HTML）
+│   │   └── api.py               # API 路由（用户数据 CRUD）
+│   ├── templates/               # Jinja2 模板
+│   │   ├── base.html            # 基础模板
+│   │   ├── index.html           # 主页
+│   │   ├── signup.html          # 注册页面
+│   │   ├── signin.html          # 登录页面
+│   │   ├── app.html             # 用户 App 页面
+│   │   └── verify_email.html    # 邮箱验证成功页面
+│   ├── static/                  # 静态文件
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   └── js/
+│   │       ├── auth.js          # 认证相关 JS
+│   │       └── app.js           # App 页面 JS
+│   └── tests/                   # 测试辅助
+│       ├── helper.py
+│       └── pytest_cov_helper.py
+├── tests/                       # 单元测试
+├── main.py                      # FastAPI 应用入口
+├── .env                         # 环境变量配置（不提交 git）
+├── .env.example                 # 环境变量示例
+├── pyproject.toml               # Python 项目配置和依赖
+├── mise.toml                    # 任务自动化配置
+├── README.md                    # 项目概述
+└── data.db                      # SQLite 数据库文件（自动生成）
 ```
 
 ---
@@ -390,38 +369,41 @@ CREATE TABLE tokens (
 
 ---
 
-## 📧 邮件配置
+## 📧 环境变量配置
 
-### Gmail SMTP 配置
+创建 `.env` 文件（参考 `.env.example`）：
 
-**环境变量 (`.env` 文件)**:
 ```bash
 # 数据库
 DATABASE_URL=sqlite:///./data.db
 
-# JWT 密钥 (生成方式: openssl rand -hex 32)
+# JWT 密钥（生成方式: openssl rand -hex 32）
 SECRET_KEY=your-secret-key-here
 
-# 邮件配置
+# 邮件 SMTP 配置
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_TLS=True
-SMTP_USER=husanhe@gmail.com
-SMTP_PASSWORD=xxxx xxxx xxxx xxxx  # 你的应用专用密码
-SMTP_FROM=husanhe@gmail.com
+SMTP_USER=your-gmail@gmail.com
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx  # Gmail 应用专用密码
+SMTP_FROM=your-gmail@gmail.com
 SMTP_FROM_NAME=FastAPI Auth
 
-# 前端 URL (用于生成验证链接)
+# 应用配置
 FRONTEND_URL=http://localhost:8000
-
-# fastapi-users 配置
-VERIFICATION_TOKEN_LIFETIME=900  # 验证 token 有效期 (秒)，15分钟
-ACCESS_TOKEN_LIFETIME=3600       # 访问 token 有效期 (秒)，1小时
+VERIFICATION_TOKEN_LIFETIME=900  # 验证 token 有效期（秒），15分钟
+ACCESS_TOKEN_LIFETIME=3600       # 访问 token 有效期（秒），1小时
 ```
 
-### 邮件模板
+**Gmail 应用专用密码获取步骤**:
+1. 启用 Gmail 的 2FA
+2. 访问 [Google 账户安全设置](https://myaccount.google.com/security)
+3. 在"应用密码"中生成 SMTP 专用密码（16 位，包含空格）
+4. 将密码复制到 `.env` 的 `SMTP_PASSWORD` 中
 
-**文件位置**: `app/templates/email/verify_email.html`
+### 邮件验证模板
+
+**文件位置**: `learn_fastapi_auth/templates/verify_email.html`
 
 ```html
 <!DOCTYPE html>
@@ -631,38 +613,30 @@ ACCESS_TOKEN_LIFETIME=3600       # 访问 token 有效期 (秒)，1小时
 
 ---
 
-## 📦 依赖包清单 (pyproject.toml)
+## 📦 核心依赖
 
-```toml
-[project]
-name = "fastapi-auth-project"
-version = "0.1.0"
-description = "FastAPI User Authentication Learning Project"
-requires-python = ">=3.10"
+项目依赖定义在 `pyproject.toml` 中。主要依赖包括：
 
-dependencies = [
-    "fastapi>=0.104.0",
-    "fastapi-users[sqlalchemy]>=12.1.0",
-    "uvicorn[standard]>=0.24.0",
-    "sqlalchemy>=2.0.0",
-    "alembic>=1.12.0",
-    "python-dotenv>=1.0.0",
-    "jinja2>=3.1.0",
-    "python-multipart>=0.0.6",
-    "email-validator>=2.0.0",
-    "bcrypt>=4.0.0",
-    "pyjwt>=2.8.0",
-    "aiosmtplib>=3.0.0",     # 异步 SMTP 客户端
-]
+**核心框架与认证**:
+- `fastapi` - Web 框架
+- `fastapi-users[sqlalchemy]` - 用户认证库
+- `sqlalchemy` - ORM 框架
+- `uvicorn` - ASGI 服务器
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "httpx>=0.25.0",
-    "black>=23.0.0",
-    "ruff>=0.1.0",
-]
-```
+**数据库与邮件**:
+- `python-dotenv` - 环境变量管理
+- `aiosmtplib` - 异步 SMTP 客户端（邮件发送）
+- `email-validator` - 邮箱格式验证
+
+**认证与安全**:
+- `pyjwt` - JWT Token 处理
+- `bcrypt` - 密码哈希算法
+- `python-multipart` - 表单数据解析
+
+**模板与前端**:
+- `jinja2` - 模板引擎
+
+使用 `mise run inst` 安装所有依赖（包括开发依赖）。
 
 ---
 
@@ -671,33 +645,39 @@ dev = [
 ### 1. 环境准备
 
 ```bash
-# 安装依赖 (使用 mise)
-mise install
-
-# 或手动安装
-pip install -e .
+# 创建虚拟环境和安装依赖（使用 mise）
+mise run venv-create
+mise run inst
 ```
 
 ### 2. 配置环境变量
 
-复制 `.env.example` 到 `.env`，填写配置：
-
 ```bash
+# 复制示例配置文件
 cp .env.example .env
-# 编辑 .env 文件，填写 Gmail SMTP 密码等信息
+
+# 编辑 .env 文件，填写以下信息：
+# - DATABASE_URL（SQLite 数据库路径）
+# - SECRET_KEY（JWT 密钥，使用: openssl rand -hex 32）
+# - SMTP 邮件配置（Gmail 应用专用密码）
+# - FRONTEND_URL（开发时为 http://localhost:8000）
 ```
 
 ### 3. 初始化数据库
 
 ```bash
 # 创建数据库表
-python -c "from app.database import create_db_and_tables; create_db_and_tables()"
+.venv/bin/python -c "from learn_fastapi_auth.database import create_db_and_tables; create_db_and_tables()"
 ```
 
 ### 4. 启动应用
 
 ```bash
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# 方法 1：直接运行
+.venv/bin/python main.py
+
+# 方法 2：使用 uvicorn（需要安装）
+.venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### 5. 访问应用
@@ -748,86 +728,31 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## 📝 API 文档 (自动生成)
+## 📝 API 文档与调试
 
-FastAPI 自动生成的 API 文档:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+启动应用后，FastAPI 自动生成的交互式 API 文档：
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
----
-
-## 🎯 学习目标达成检查
-
-完成此项目后，你将掌握：
-
-**后端技能**:
-- ✅ FastAPI 框架使用
-- ✅ fastapi-users 认证库集成
-- ✅ SQLAlchemy ORM 数据库操作
-- ✅ JWT Token 认证机制
-- ✅ 邮件发送 (SMTP)
-- ✅ 环境变量管理
-- ✅ RESTful API 设计
-
-**前端技能**:
-- ✅ Jinja2 模板引擎
-- ✅ 原生 JavaScript 异步请求 (fetch)
-- ✅ localStorage 使用
-- ✅ 表单验证和错误处理
-- ✅ 基础 HTML/CSS 布局
-
-**SaaS 核心概念**:
-- ✅ 用户注册和认证流程
-- ✅ 邮箱验证机制
-- ✅ 会话管理 (Token-based)
-- ✅ 用户资源隔离
-- ✅ 基础安全实践
-
-**开发实践**:
-- ✅ 项目结构组织
-- ✅ 配置管理 (.env)
-- ✅ 分阶段开发
-- ✅ Git 版本控制
+这两个页面可用于调试 API 端点和查看请求/响应示例。
 
 ---
 
-## 📚 参考资源
+## ✅ 开发前检查清单
 
-- **FastAPI 官方文档**: https://fastapi.tiangolo.com/
-- **fastapi-users 文档**: https://fastapi-users.github.io/fastapi-users/
-- **SQLAlchemy 文档**: https://docs.sqlalchemy.org/
-- **Jinja2 文档**: https://jinja.palletsprojects.com/
+在开始编码前，请确认以下准备工作已完成：
 
----
+- [ ] 理解项目整体架构和核心功能需求
+- [ ] 阅读 CLAUDE.md 了解开发工具和命令
+- [ ] 准备 Gmail 账户和应用专用密码
+- [ ] 理解四个开发阶段（Phase 1-4）的目标和验收标准
+- [ ] 明确当前代码库结构（learn_fastapi_auth/ 为主包）
+- [ ] 创建 .env 文件并配置必要的环境变量
 
-## 🔄 后续扩展方向
-
-完成基础项目后，可以考虑的扩展：
-
-1. **OAuth 第三方登录** (Google, GitHub)
-2. **双因素认证 (2FA)** (TOTP)
-3. **角色和权限管理** (RBAC)
-4. **更复杂的用户资源** (文件上传、数据可视化)
-5. **Docker 容器化部署**
-6. **CI/CD 自动化部署**
-7. **前端框架迁移** (Vue.js / React)
-8. **数据库迁移到 PostgreSQL**
+确认无误后，即可按照 Phase 1-4 的计划开始实现！
 
 ---
 
-**文档版本**: v1.0  
-**创建时间**: 2024-12-07  
+**文档版本**: v2.0
 **最后更新**: 2024-12-07
-
----
-
-## ✅ Spec 文档确认
-
-在开始编码前，请确认：
-- [ ] 已理解项目整体架构
-- [ ] 已准备好 Gmail SMTP 应用密码
-- [ ] 已理解所有阶段的开发目标
-- [ ] 已创建项目文件夹结构
-- [ ] 已配置 .env 文件
-
-确认无误后，即可开始 Phase 1 开发！
+**维护人**: 项目指导者
