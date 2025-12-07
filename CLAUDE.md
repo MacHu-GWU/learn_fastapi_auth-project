@@ -2,14 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Quick Reference
 
-This is a learning project for FastAPI + Authentication built with:
-- **Backend**: FastAPI, fastapi-users (user authentication), SQLAlchemy (ORM), SQLite (database)
-- **Frontend**: Native HTML/CSS/JavaScript (no frameworks)
-- **Development Tools**: Python 3.12, uv (dependency manager), pytest (testing), Sphinx (documentation)
+For project overview, technology stack, and learning goals, see [README.md](README.md).
 
-The project demonstrates understanding of FastAPI authentication mechanisms, SQLAlchemy ORM usage, and frontend-backend separation architecture.
+This document focuses on development workflow, commands, and codebase architecture.
 
 ## Development Environment Setup
 
