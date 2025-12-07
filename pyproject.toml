@@ -40,9 +40,22 @@ dependencies = [
     "func-args>=1.0.1,<2.0.0", # inspect function/method arguments
     "soft_deps>=0.1.1,<1.0.0", # Lazy import optional dependencies
     "boltons>=25.0.0,<26.0.0", # Utility functions for Python
+    # Database & ORM
     "SQLAlchemy>=2.0.44,<3.0.0",
+    "aiosqlite>=0.20.0,<1.0.0",  # Async SQLite support
+    # Web framework
     "fastapi>=0.123.10,<1.0.0",
-    "fastapi-users>=15.0.1,<16.0.0",
+    "fastapi-users[sqlalchemy]>=15.0.1,<16.0.0",  # User authentication
+    "uvicorn>=0.34.0,<1.0.0",  # ASGI server
+    # Email & Validation
+    "aiosmtplib>=3.0.0,<4.0.0",  # Async SMTP client
+    "email-validator>=2.2.0,<3.0.0",  # Email validation
+    # Authentication & Security
+    "pyjwt>=2.10.0,<3.0.0",  # JWT token handling
+    "bcrypt>=4.2.0,<5.0.0",  # Password hashing
+    "python-multipart>=0.0.20,<1.0.0",  # Form data parsing
+    # Templates
+    "jinja2>=3.1.0,<4.0.0",  # Template engine
 ]
 
 # ------------------------------------------------------------------------------
@@ -69,6 +82,8 @@ dev = [
 test = [
     "pytest>=8.2.2,<9.0.0", # Testing framework
     "pytest-cov>=6.0.0,<7.0.0", # Coverage reporting
+    "pytest-asyncio>=0.24.0,<1.0.0",  # Async test support
+    "httpx>=0.28.0,<1.0.0",  # Async HTTP client for testing
 ]
 
 # ------------------------------------------------------------------------------
@@ -107,6 +122,12 @@ exclude = [
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+# pytest configuration
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
 
 # python workflow tool config
 [tool.pywf]
