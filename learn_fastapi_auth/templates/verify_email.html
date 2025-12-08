@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification - FastAPI Auth{% endblock %}
+
+{% block content %}
+<div class="verify-container">
+    {% if success %}
+    <div class="verify-icon success">&#10003;</div>
+    <h1>Email Verified!</h1>
+    <p>Your email has been successfully verified. You can now sign in to your account.</p>
+    <a href="/signin" class="btn btn-primary">Sign In</a>
+    {% elif already_verified %}
+    <div class="verify-icon success">&#10003;</div>
+    <h1>Already Verified</h1>
+    <p>Your email is already verified. You can sign in to your account.</p>
+    <a href="/signin" class="btn btn-primary">Sign In</a>
+    {% else %}
+    <div class="verify-icon error">&#10007;</div>
+    <h1>Verification Failed</h1>
+    <p>{{ error_message or "The verification link is invalid or has expired. Please request a new verification email." }}</p>
+    <a href="/signup" class="btn btn-primary">Sign Up Again</a>
+    {% endif %}
+</div>
+{% endblock %}

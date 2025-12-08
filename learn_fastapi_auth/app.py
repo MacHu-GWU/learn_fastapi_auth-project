@@ -8,8 +8,10 @@ This module initializes the FastAPI application with all routes and configuratio
 
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException, Query, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import Depends, FastAPI, Query, Request, status
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +26,8 @@ from .auth.users import (
 from .config import config
 from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
+from .paths import dir_static, dir_templates
+from .routers import pages_router
 from .schemas import (
     MessageResponse,
     UserCreate,
@@ -47,6 +51,15 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Mount static files
+app.mount("/static", StaticFiles(directory=str(dir_static)), name="static")
+
+# Jinja2 templates
+templates = Jinja2Templates(directory=str(dir_templates))
+
+# Include page router (HTML pages)
+app.include_router(pages_router)
 
 
 # =============================================================================
@@ -177,14 +190,3 @@ async def health_check():
     return {"status": "healthy"}
 
 
-# =============================================================================
-# Root Route
-# =============================================================================
-@app.get("/", tags=["pages"])
-async def root():
-    """Root endpoint - returns welcome message."""
-    return {
-        "message": "Welcome to FastAPI User Authentication",
-        "docs": "/docs",
-        "redoc": "/redoc",
-    }

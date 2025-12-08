@@ -32,6 +32,8 @@ class PathEnum:
 
     # Source Code
     dir_package = _dir_here
+    dir_templates = dir_package / "templates"
+    dir_static = dir_package / "static"
     path_version_py = dir_package / "_version.py"
     path_pyproject_toml = dir_project_root / "pyproject.toml"
     path_requirements_txt = dir_project_root / "requirements.txt"
@@ -63,3 +65,7 @@ path_enum = PathEnum()
 """
 Single entry point for all project paths with absolute path references.
 """
+
+# Convenience exports for commonly used paths
+dir_templates = path_enum.dir_templates
+dir_static = path_enum.dir_static

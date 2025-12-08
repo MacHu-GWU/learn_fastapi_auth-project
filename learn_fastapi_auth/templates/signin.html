@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - FastAPI Auth{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Sign In</h1>
+    <form id="signin-form">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required placeholder="your@email.com">
+            <div class="error-message" id="email-error"></div>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="Your password">
+            <div class="error-message" id="password-error"></div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="submit-btn">Sign In</button>
+    </form>
+    <p class="auth-link">
+        Don't have an account? <a href="/signup">Create Account</a>
+    </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('signin-form');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Check for pending verification token
+    const urlParams = new URLSearchParams(window.location.search);
+    const verificationToken = urlParams.get('token');
+    const verified = urlParams.get('verified');
+
+    if (verified === 'pending' && verificationToken) {
+        // Call verification API
+        verifyEmail(verificationToken);
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearAllErrors();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        // Validate
+        let hasError = false;
+
+        if (!validateEmail(email)) {
+            showFieldError('email', 'Please enter a valid email address');
+            hasError = true;
+        }
+
+        if (!password) {
+            showFieldError('password', 'Please enter your password');
+            hasError = true;
+        }
+
+        if (hasError) return;
+
+        // Submit
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Signing In...';
+
+        try {
+            // Use form-urlencoded for OAuth2 password flow
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Store token and email
+                setToken(data.access_token);
+                setUserEmail(email);
+
+                showToast('Login successful!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/app';
+                }, 1000);
+            } else {
+                // Handle specific error messages
+                if (data.detail === 'LOGIN_BAD_CREDENTIALS') {
+                    showToast('Invalid email or password', 'error');
+                } else if (data.detail === 'LOGIN_USER_NOT_VERIFIED') {
+                    showToast('Please verify your email before signing in', 'error');
+                } else {
+                    showToast(data.detail || 'Login failed', 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showToast('An error occurred. Please try again.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign In';
+        }
+    });
+});
+
+async function verifyEmail(token) {
+    showToast('Verifying your email...', 'info');
+
+    try {
+        const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token })
+        });
+
+        if (response.ok) {
+            showToast('Email verified successfully! Please sign in.', 'success');
+            // Clean URL
+            window.history.replaceState({}, document.title, '/signin?verified=success');
+        } else {
+            const data = await response.json();
+            if (data.detail === 'VERIFY_USER_ALREADY_VERIFIED') {
+                showToast('Email already verified. Please sign in.', 'info');
+            } else {
+                showToast('Verification failed. The link may have expired.', 'error');
+            }
+            window.history.replaceState({}, document.title, '/signin');
+        }
+    } catch (error) {
+        console.error('Verification error:', error);
+        showToast('Verification failed. Please try again.', 'error');
+        window.history.replaceState({}, document.title, '/signin');
+    }
+}
+</script>
+{% endblock %}

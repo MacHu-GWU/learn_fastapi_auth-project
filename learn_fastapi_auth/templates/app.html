@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}App - FastAPI Auth{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <div class="app-header">
+        <h1>Your Personal Data</h1>
+        <p>This is your private space. Only you can see and edit this content.</p>
+    </div>
+
+    <div class="data-card">
+        <h2>Your Text Data</h2>
+        <div class="data-display empty" id="data-display">
+            Loading...
+        </div>
+        <button class="btn btn-primary" id="edit-btn">Edit</button>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <h2>Edit Your Data</h2>
+        <textarea id="edit-textarea" placeholder="Enter your text here..."></textarea>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+            <button class="btn btn-primary" id="save-btn">Save</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/app.js"></script>
+{% endblock %}

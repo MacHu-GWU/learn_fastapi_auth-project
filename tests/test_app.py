@@ -31,12 +31,37 @@ class TestRoot:
     """Test root endpoint."""
 
     async def test_root(self, client: AsyncClient):
-        """Test root endpoint returns welcome message."""
+        """Test root endpoint returns HTML homepage."""
         response = await client.get("/")
         assert response.status_code == 200
-        data = response.json()
-        assert "message" in data
-        assert "Welcome" in data["message"]
+        assert "text/html" in response.headers.get("content-type", "")
+        assert "Hello World" in response.text
+        assert "FastAPI Auth" in response.text
+
+
+class TestPageRoutes:
+    """Test HTML page routes."""
+
+    async def test_signup_page(self, client: AsyncClient):
+        """Test signup page renders correctly."""
+        response = await client.get("/signup")
+        assert response.status_code == 200
+        assert "text/html" in response.headers.get("content-type", "")
+        assert "Create Account" in response.text
+
+    async def test_signin_page(self, client: AsyncClient):
+        """Test signin page renders correctly."""
+        response = await client.get("/signin")
+        assert response.status_code == 200
+        assert "text/html" in response.headers.get("content-type", "")
+        assert "Sign In" in response.text
+
+    async def test_app_page(self, client: AsyncClient):
+        """Test app page renders correctly."""
+        response = await client.get("/app")
+        assert response.status_code == 200
+        assert "text/html" in response.headers.get("content-type", "")
+        assert "Your Personal Data" in response.text
 
 
 class TestUserRegistration:
