@@ -175,4 +175,10 @@ class TestProtectedRoutes:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "-s"])
+    from learn_fastapi_auth.tests import run_cov_test
+
+    run_cov_test(
+        __file__,
+        "learn_fastapi_auth.auth",
+        preview=False,
+    )
