@@ -26,7 +26,9 @@ from learn_fastapi_auth.database import get_async_session
 from learn_fastapi_auth.models import Token, User, UserData
 
 
-async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+async def get_user_db(
+    session: AsyncSession = Depends(get_async_session),
+):
     """Dependency for getting the user database."""
     yield SQLAlchemyUserDatabase(session, User)
 
@@ -152,6 +154,12 @@ async def validate_token_in_db(session: AsyncSession, token_str: str) -> bool:
     """Check if a token exists and is not expired."""
     result = await session.execute(select(Token).where(Token.token == token_str))
     token = result.scalar_one_or_none()
-    if token and token.expires_at > datetime.now(timezone.utc):
-        return True
+    if token:
+        # Handle both timezone-aware and naive datetimes (SQLite stores naive)
+        now = datetime.now(timezone.utc)
+        expires_at = token.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at > now:
+            return True
     return False
