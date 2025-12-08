@@ -1,0 +1,141 @@
+# -*- coding: utf-8 -*-
+
+"""
+Email sending functionality.
+
+Provides async email sending via SMTP for:
+- Email verification
+- Password reset (future)
+"""
+
+import ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import aiosmtplib
+
+from learn_fastapi_auth.config import config
+
+
+def get_verification_email_html(verification_url: str) -> str:
+    """Generate HTML content for verification email."""
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {{ font-family: Arial, sans-serif; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .button {{
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>验证您的邮箱地址</h2>
+        <p>欢迎注册！</p>
+        <p>请点击下方按钮验证您的邮箱地址：</p>
+        <p>
+            <a href="{verification_url}" class="button">验证邮箱</a>
+        </p>
+        <p>或复制此链接到浏览器：<br>{verification_url}</p>
+        <p>此链接将在 15 分钟后过期。</p>
+        <hr>
+        <p style="color: #666; font-size: 12px;">
+            如果您没有注册此账户，请忽略此邮件。
+        </p>
+    </div>
+</body>
+</html>"""
+
+
+def get_verification_email_text(verification_url: str) -> str:
+    """Generate plain text content for verification email."""
+    return f"""验证您的邮箱地址
+
+欢迎注册！
+
+请点击下方链接验证您的邮箱地址：
+{verification_url}
+
+此链接将在 15 分钟后过期。
+
+如果您没有注册此账户，请忽略此邮件。
+"""
+
+
+async def send_email(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    text_content: str,
+) -> bool:
+    """
+    Send an email via SMTP.
+
+    Args:
+        to_email: Recipient email address
+        subject: Email subject
+        html_content: HTML body of the email
+        text_content: Plain text body of the email
+
+    Returns:
+        True if email was sent successfully, False otherwise
+    """
+    message = MIMEMultipart("alternative")
+    message["Subject"] = subject
+    message["From"] = f"{config.smtp_from_name} <{config.smtp_from}>"
+    message["To"] = to_email
+
+    # Add plain text and HTML parts
+    part1 = MIMEText(text_content, "plain", "utf-8")
+    part2 = MIMEText(html_content, "html", "utf-8")
+    message.attach(part1)
+    message.attach(part2)
+
+    try:
+        # Create SSL context
+        context = ssl.create_default_context()
+
+        # Connect and send
+        await aiosmtplib.send(
+            message,
+            hostname=config.smtp_host,
+            port=config.smtp_port,
+            username=config.smtp_user,
+            password=config.smtp_password,
+            start_tls=config.smtp_tls,
+            tls_context=context,
+        )
+        print(f"Email sent successfully to {to_email}")
+        return True
+    except Exception as e:
+        print(f"Failed to send email to {to_email}: {e}")
+        return False
+
+
+async def send_verification_email(email: str, token: str) -> bool:
+    """
+    Send email verification link to user.
+
+    Args:
+        email: User's email address
+        token: Verification token
+
+    Returns:
+        True if email was sent successfully, False otherwise
+    """
+    verification_url = f"{config.frontend_url}/auth/verify-email?token={token}"
+
+    return await send_email(
+        to_email=email,
+        subject="验证您的邮箱地址",
+        html_content=get_verification_email_html(verification_url),
+        text_content=get_verification_email_text(verification_url),
+    )
