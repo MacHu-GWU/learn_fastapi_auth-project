@@ -42,7 +42,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     verification_token_secret = config.secret_key
 
     async def on_after_register(
-        self, user: User, request: Optional[Request] = None
+        self,
+        user: User,
+        request: Optional[Request] = None,
     ) -> None:
         """Called after a user successfully registers."""
         print(f"User {user.id} has registered.")
@@ -50,13 +52,19 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         await self.request_verify(user, request)
 
     async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
+        self,
+        user: User,
+        token: str,
+        request: Optional[Request] = None,
     ) -> None:
         """Called after a user requests password reset."""
         print(f"User {user.id} has forgot their password. Reset token: {token}")
 
     async def on_after_request_verify(
-        self, user: User, token: str, request: Optional[Request] = None
+        self,
+        user: User,
+        token: str,
+        request: Optional[Request] = None,
     ) -> None:
         """Called after a user requests email verification."""
         from learn_fastapi_auth.auth.email import send_verification_email
@@ -65,7 +73,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         print(f"Verification requested for user {user.id}. Token: {token}")
 
     async def on_after_verify(
-        self, user: User, request: Optional[Request] = None
+        self,
+        user: User,
+        request: Optional[Request] = None,
     ) -> None:
         """Called after a user is verified. Creates UserData record."""
         print(f"User {user.id} has been verified.")
@@ -85,7 +95,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             print(f"Created UserData for user {user.id}")
 
 
-async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
+async def get_user_manager(
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
+):
     """Dependency for getting the user manager."""
     yield UserManager(user_db)
 
@@ -127,7 +139,9 @@ current_verified_user = fastapi_users.current_user(active=True, verified=True)
 # Token Database Management
 # =============================================================================
 async def store_token(
-    session: AsyncSession, token_str: str, user_id: uuid.UUID
+    session: AsyncSession,
+    token_str: str,
+    user_id: uuid.UUID,
 ) -> Token:
     """Store a JWT token in the database."""
     expires_at = datetime.now(timezone.utc) + timedelta(
@@ -139,7 +153,10 @@ async def store_token(
     return token
 
 
-async def delete_token(session: AsyncSession, token_str: str) -> bool:
+async def delete_token(
+    session: AsyncSession,
+    token_str: str,
+) -> bool:
     """Delete a token from the database (logout)."""
     result = await session.execute(select(Token).where(Token.token == token_str))
     token = result.scalar_one_or_none()
@@ -150,7 +167,10 @@ async def delete_token(session: AsyncSession, token_str: str) -> bool:
     return False
 
 
-async def validate_token_in_db(session: AsyncSession, token_str: str) -> bool:
+async def validate_token_in_db(
+    session: AsyncSession,
+    token_str: str,
+) -> bool:
     """Check if a token exists and is not expired."""
     result = await session.execute(select(Token).where(Token.token == token_str))
     token = result.scalar_one_or_none()
