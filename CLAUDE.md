@@ -50,8 +50,11 @@ learn_fastapi_auth-project/
 │   │   ├── helper.py            # Test runners with coverage
 │   │   └── pytest_cov_helper.py # Vendor code for coverage automation
 │   └── vendor/                  # Third-party utilities
-├── tests/                       # Unit tests directory
-│   ├── test_utils.py            # Tests for main utilities
+├── tests/                       # Tests directory
+│   ├── test_app.py              # Integration tests (HTTP endpoints)
+│   ├── test_utils.py            # Unit tests for utils.py
+│   ├── auth/
+│   │   └── test_auth_users.py   # Unit tests for auth/users.py
 │   └── all.py
 ├── docs/                        # Sphinx documentation
 │   └── source/
@@ -69,11 +72,15 @@ learn_fastapi_auth-project/
 The `learn_fastapi_auth/paths.py` module provides centralized absolute path management via `PathEnum` class. This eliminates current directory dependencies and enables IDE autocomplete. Use `path_enum` for all file/directory references (see module docstring for available paths).
 
 ### Test Structure
-- Unit tests live in `tests/` directory (top-level)
-- Helper utilities in `learn_fastapi_auth/tests/helper.py`
-- Tests use pytest with coverage reporting integration
-- Coverage reports auto-generated in `htmlcov/` directory
-- Use `run_cov_test()` helper for individual test file coverage analysis
+
+**See [Testing Philosophy](docs/source/Testing-Philosophy.md) for full guidelines.**
+
+Key points:
+- Unit tests: Direct function calls (`test_session` fixture) → `tests/<pkg>/test_<pkg>_<module>.py`
+- Integration tests: HTTP endpoints (`client` fixture) → `tests/test_app.py`
+- Coverage goal: 95%+
+- Don't mock the function being tested
+- Coverage reports in `htmlcov/` directory
 
 ### Dependency Management
 - `pyproject.toml` defines all dependencies with version constraints
@@ -114,9 +121,9 @@ mise run fmt
 ```
 
 **Create a new test:**
-- Add test functions to `tests/` directory
-- Follow naming convention: `test_*.py` and `def test_*()`
-- Use `run_cov_test()` helper from `learn_fastapi_auth.tests` if needing standalone coverage
+- Unit tests for `learn_fastapi_auth/<pkg>/<module>.py` → `tests/<pkg>/test_<pkg>_<module>.py`
+- Integration tests (HTTP endpoints) → `tests/test_app.py`
+- Use `run_cov_test()` helper from `learn_fastapi_auth.tests` for standalone coverage
 
 ## Next Steps for Implementation
 
