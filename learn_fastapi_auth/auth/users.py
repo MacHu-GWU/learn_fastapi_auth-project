@@ -48,8 +48,16 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     ) -> None:
         """Called after a user successfully registers."""
         print(f"User {user.id} has registered.")
-        # Send verification email
+        # Send verification email first (requires user to be active)
         await self.request_verify(user, request)
+
+        # Then set user as inactive until email is verified
+        session: AsyncSession = self.user_db.session
+        user.is_active = False
+        session.add(user)
+        await session.commit()
+        await session.refresh(user)
+        print(f"User {user.id} set to inactive until email verified.")
 
     async def on_after_forgot_password(
         self,
@@ -77,11 +85,15 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         user: User,
         request: Optional[Request] = None,
     ) -> None:
-        """Called after a user is verified. Creates UserData record."""
-        print(f"User {user.id} has been verified.")
+        """Called after a user is verified. Activates account and creates UserData."""
+        session: AsyncSession = self.user_db.session
+
+        # Activate the user account
+        user.is_active = True
+        session.add(user)
+        print(f"User {user.id} has been verified and activated.")
 
         # Create UserData record for the verified user
-        session: AsyncSession = self.user_db.session
         # Check if user_data already exists
         result = await session.execute(
             select(UserData).where(UserData.user_id == user.id)
@@ -91,8 +103,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         if not existing_data:
             user_data = UserData(user_id=user.id, text_value="")
             session.add(user_data)
-            await session.commit()
             print(f"Created UserData for user {user.id}")
+
+        await session.commit()
 
 
 async def get_user_manager(

@@ -86,7 +86,8 @@ class TestUserRegistration:
         data = response.json()
         assert data["email"] == user_data["email"]
         assert "id" in data
-        assert data["is_active"] is True
+        # User is inactive until email verification
+        assert data["is_active"] is False
         assert data["is_verified"] is False
 
     async def test_register_user_invalid_email(self, client: AsyncClient):
@@ -120,14 +121,17 @@ class TestUserRegistration:
 class TestUserLogin:
     """Test user login endpoint."""
 
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_register")
     @patch("learn_fastapi_auth.auth.users.UserManager.on_after_request_verify")
     async def test_login_success(
         self,
         mock_verify: AsyncMock,
+        mock_register: AsyncMock,
         client: AsyncClient,
     ):
         """Test successful user login."""
         mock_verify.return_value = None
+        mock_register.return_value = None  # Skip deactivation for this test
 
         # First register a user
         email = f"login_test_{uuid.uuid4().hex[:8]}@example.com"
@@ -151,6 +155,30 @@ class TestUserLogin:
 
         assert response.status_code == 400
 
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_request_verify")
+    async def test_login_unverified_user_fails(
+        self,
+        mock_verify: AsyncMock,
+        client: AsyncClient,
+    ):
+        """Test login fails for user who hasn't verified email."""
+        mock_verify.return_value = None
+
+        # Register a user (will be inactive until verified)
+        email = f"unverified_{uuid.uuid4().hex[:8]}@example.com"
+        password = "TestPass123!"
+        register_data = {"email": email, "password": password}
+        response = await client.post("/api/auth/register", json=register_data)
+        assert response.status_code == 201
+        assert response.json()["is_active"] is False
+
+        # Attempt to login - should fail because user is inactive
+        login_data = {"username": email, "password": password}
+        response = await client.post("/api/auth/login", data=login_data)
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "LOGIN_BAD_CREDENTIALS"
+
 
 class TestProtectedRoutes:
     """Test protected API routes."""
@@ -173,10 +201,17 @@ class TestProtectedRoutes:
         )
         assert response.status_code == 401
 
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_register")
     @patch("learn_fastapi_auth.auth.users.UserManager.on_after_request_verify")
-    async def test_get_users_me(self, mock_verify: AsyncMock, client: AsyncClient):
+    async def test_get_users_me(
+        self,
+        mock_verify: AsyncMock,
+        mock_register: AsyncMock,
+        client: AsyncClient,
+    ):
         """Test getting current user info with valid token."""
         mock_verify.return_value = None
+        mock_register.return_value = None  # Skip deactivation for this test
 
         # Register and login
         email = f"me_test_{uuid.uuid4().hex[:8]}@example.com"
