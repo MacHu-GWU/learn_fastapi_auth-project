@@ -2,7 +2,7 @@
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from learn_fastapi_auth.database import Base, get_async_session
 
@@ -20,9 +20,17 @@ async def test_engine():
 
 
 @pytest_asyncio.fixture
+async def test_session(test_engine) -> AsyncSession:
+    """Create test database session for direct database operations."""
+    async_session_maker = async_sessionmaker(test_engine, expire_on_commit=False)
+    async with async_session_maker() as session:
+        yield session
+
+
+@pytest_asyncio.fixture
 async def client(test_engine):
     """Create test client with overridden database session."""
-    from main import app
+    from learn_fastapi_auth.app import app
 
     async_session_maker = async_sessionmaker(test_engine, expire_on_commit=False)
 
