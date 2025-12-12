@@ -87,3 +87,17 @@ run = """
     dist/*
 """
 depends = ['build']
+
+[tasks.run]
+description = "Run debug server at localhost"
+run = """
+.venv/bin/python main.py
+"""
+depends = ['inst']
+
+[tasks.kill]
+description = "Kill debug server at localhost"
+run = """
+.venv/bin/python scripts/kill_all_servers.py
+"""
+depends = ['inst']
