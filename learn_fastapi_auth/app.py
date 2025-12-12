@@ -29,6 +29,7 @@ from .models import User, UserData
 from .paths import dir_static, dir_templates
 from .routers import pages_router
 from .schemas import (
+    ChangePasswordRequest,
     MessageResponse,
     UserCreate,
     UserDataRead,
@@ -115,6 +116,40 @@ async def logout(
     return MessageResponse(message="Successfully logged out")
 
 
+@app.post("/api/auth/change-password", response_model=MessageResponse, tags=["auth"])
+async def change_password(
+    data: ChangePasswordRequest,
+    user: User = Depends(current_active_user),
+    user_manager=Depends(get_user_manager),
+):
+    """
+    Change password for logged-in user.
+
+    Requires current password verification before updating to new password.
+    """
+    # Verify current password
+    verified, _ = user_manager.password_helper.verify_and_update(
+        data.current_password, user.hashed_password
+    )
+    if not verified:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=400,
+            detail="CHANGE_PASSWORD_INVALID_CURRENT",
+        )
+
+    # Update to new password
+    hashed_password = user_manager.password_helper.hash(data.new_password)
+    user.hashed_password = hashed_password
+
+    session = user_manager.user_db.session
+    session.add(user)
+    await session.commit()
+
+    return MessageResponse(message="Password changed successfully")
+
+
 # =============================================================================
 # Email Verification Page Route
 # =============================================================================
@@ -132,6 +167,25 @@ async def verify_email_page(
     # This page should redirect to a frontend page that will call the API
     return RedirectResponse(
         url=f"{config.frontend_url}/signin?verified=pending&token={token}",
+        status_code=status.HTTP_302_FOUND,
+    )
+
+
+# =============================================================================
+# Password Reset Page Route
+# =============================================================================
+@app.get("/auth/reset-password", tags=["pages"])
+async def reset_password_redirect(
+    token: str = Query(..., description="Password reset token"),
+):
+    """
+    Handle password reset link from email.
+
+    This route is accessed when a user clicks the reset link in their email.
+    It redirects to the reset password page with the token.
+    """
+    return RedirectResponse(
+        url=f"{config.frontend_url}/reset-password?token={token}",
         status_code=status.HTTP_302_FOUND,
     )
 

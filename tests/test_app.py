@@ -63,6 +63,20 @@ class TestPageRoutes:
         assert "text/html" in response.headers.get("content-type", "")
         assert "Your Personal Data" in response.text
 
+    async def test_forgot_password_page(self, client: AsyncClient):
+        """Test forgot password page renders correctly."""
+        response = await client.get("/forgot-password")
+        assert response.status_code == 200
+        assert "text/html" in response.headers.get("content-type", "")
+        assert "Forgot Password" in response.text
+
+    async def test_reset_password_page(self, client: AsyncClient):
+        """Test reset password page renders correctly."""
+        response = await client.get("/reset-password")
+        assert response.status_code == 200
+        assert "text/html" in response.headers.get("content-type", "")
+        assert "Reset Password" in response.text
+
 
 class TestUserRegistration:
     """Test user registration endpoint."""
@@ -232,6 +246,147 @@ class TestProtectedRoutes:
         assert response.status_code == 200
         data = response.json()
         assert data["email"] == email
+
+
+class TestPasswordReset:
+    """Test password reset endpoints."""
+
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_forgot_password")
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_request_verify")
+    async def test_forgot_password_existing_email(
+        self,
+        mock_verify: AsyncMock,
+        mock_forgot: AsyncMock,
+        client: AsyncClient,
+    ):
+        """Test forgot password for existing user."""
+        mock_verify.return_value = None
+        mock_forgot.return_value = None
+
+        # Register a user first
+        email = f"forgot_test_{uuid.uuid4().hex[:8]}@example.com"
+        await client.post(
+            "/api/auth/register", json={"email": email, "password": "TestPass123!"}
+        )
+
+        # Request password reset
+        response = await client.post(
+            "/api/auth/forgot-password", json={"email": email}
+        )
+
+        # Should return 202 (accepted) regardless of email existence
+        assert response.status_code == 202
+
+    async def test_forgot_password_nonexistent_email(self, client: AsyncClient):
+        """Test forgot password for non-existent email (should not reveal)."""
+        response = await client.post(
+            "/api/auth/forgot-password",
+            json={"email": "nonexistent@example.com"},
+        )
+        # Should still return 202 to not reveal if email exists
+        assert response.status_code == 202
+
+    async def test_reset_password_invalid_token(self, client: AsyncClient):
+        """Test reset password with invalid token."""
+        response = await client.post(
+            "/api/auth/reset-password",
+            json={"token": "invalid_token", "password": "NewPass123!"},
+        )
+        assert response.status_code == 400
+        assert response.json()["detail"] == "RESET_PASSWORD_BAD_TOKEN"
+
+
+class TestChangePassword:
+    """Test change password endpoint."""
+
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_register")
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_request_verify")
+    async def test_change_password_success(
+        self,
+        mock_verify: AsyncMock,
+        mock_register: AsyncMock,
+        client: AsyncClient,
+    ):
+        """Test changing password with correct current password."""
+        mock_verify.return_value = None
+        mock_register.return_value = None
+
+        # Register and login
+        email = f"change_pw_{uuid.uuid4().hex[:8]}@example.com"
+        old_password = "OldPass123!"
+        new_password = "NewPass456!"
+
+        await client.post(
+            "/api/auth/register", json={"email": email, "password": old_password}
+        )
+        login_response = await client.post(
+            "/api/auth/login", data={"username": email, "password": old_password}
+        )
+        token = login_response.json()["access_token"]
+
+        # Change password
+        response = await client.post(
+            "/api/auth/change-password",
+            json={"current_password": old_password, "new_password": new_password},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["message"] == "Password changed successfully"
+
+        # Verify old password no longer works
+        login_old = await client.post(
+            "/api/auth/login", data={"username": email, "password": old_password}
+        )
+        assert login_old.status_code == 400
+
+        # Verify new password works
+        login_new = await client.post(
+            "/api/auth/login", data={"username": email, "password": new_password}
+        )
+        assert login_new.status_code == 200
+
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_register")
+    @patch("learn_fastapi_auth.auth.users.UserManager.on_after_request_verify")
+    async def test_change_password_wrong_current(
+        self,
+        mock_verify: AsyncMock,
+        mock_register: AsyncMock,
+        client: AsyncClient,
+    ):
+        """Test changing password with wrong current password."""
+        mock_verify.return_value = None
+        mock_register.return_value = None
+
+        # Register and login
+        email = f"wrong_pw_{uuid.uuid4().hex[:8]}@example.com"
+        password = "TestPass123!"
+
+        await client.post(
+            "/api/auth/register", json={"email": email, "password": password}
+        )
+        login_response = await client.post(
+            "/api/auth/login", data={"username": email, "password": password}
+        )
+        token = login_response.json()["access_token"]
+
+        # Try to change password with wrong current password
+        response = await client.post(
+            "/api/auth/change-password",
+            json={"current_password": "WrongPassword!", "new_password": "NewPass456!"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "CHANGE_PASSWORD_INVALID_CURRENT"
+
+    async def test_change_password_unauthorized(self, client: AsyncClient):
+        """Test changing password without authentication."""
+        response = await client.post(
+            "/api/auth/change-password",
+            json={"current_password": "old", "new_password": "newpass123"},
+        )
+        assert response.status_code == 401
 
 
 if __name__ == "__main__":

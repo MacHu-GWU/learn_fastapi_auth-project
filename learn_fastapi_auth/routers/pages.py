@@ -38,3 +38,15 @@ async def signin(request: Request):
 async def app_page(request: Request):
     """Render the user app page."""
     return templates.TemplateResponse(request, "app.html")
+
+
+@router.get("/forgot-password", response_class=HTMLResponse)
+async def forgot_password(request: Request):
+    """Render the forgot password page."""
+    return templates.TemplateResponse(request, "forgot_password.html")
+
+
+@router.get("/reset-password", response_class=HTMLResponse)
+async def reset_password(request: Request):
+    """Render the reset password page."""
+    return templates.TemplateResponse(request, "reset_password.html")

@@ -66,6 +66,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         request: Optional[Request] = None,
     ) -> None:
         """Called after a user requests password reset."""
+        from learn_fastapi_auth.auth.email import send_password_reset_email
+
+        await send_password_reset_email(user.email, token)
         print(f"User {user.id} has forgot their password. Reset token: {token}")
 
     async def on_after_request_verify(

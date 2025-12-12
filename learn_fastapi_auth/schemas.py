@@ -69,6 +69,16 @@ class TokenResponse(BaseModel):
 
 
 # =============================================================================
+# Password Change Schema
+# =============================================================================
+class ChangePasswordRequest(BaseModel):
+    """Schema for changing password."""
+
+    current_password: str = Field(..., description="Current password for verification")
+    new_password: str = Field(..., min_length=8, description="New password")
+
+
+# =============================================================================
 # General Response Schemas
 # =============================================================================
 class MessageResponse(BaseModel):
