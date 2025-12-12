@@ -56,6 +56,8 @@ dependencies = [
     "python-multipart>=0.0.20,<1.0.0",  # Form data parsing
     # Templates
     "jinja2>=3.1.0,<4.0.0",  # Template engine
+    # Rate Limiting
+    "slowapi>=0.1.9,<1.0.0",  # Request rate limiting
 ]
 
 # ------------------------------------------------------------------------------

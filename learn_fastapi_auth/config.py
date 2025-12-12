@@ -39,6 +39,12 @@ class Config:
     reset_password_token_lifetime: int = dataclasses.field()
     access_token_lifetime: int = dataclasses.field()
 
+    # Rate Limiting
+    rate_limit_login: str = dataclasses.field()
+    rate_limit_register: str = dataclasses.field()
+    rate_limit_forgot_password: str = dataclasses.field()
+    rate_limit_default: str = dataclasses.field()
+
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
@@ -70,6 +76,13 @@ class Config:
             access_token_lifetime=int(
                 os.environ.get("ACCESS_TOKEN_LIFETIME", "3600")
             ),
+            # Rate Limiting (default values follow common security practices)
+            rate_limit_login=os.environ.get("RATE_LIMIT_LOGIN", "5/minute"),
+            rate_limit_register=os.environ.get("RATE_LIMIT_REGISTER", "10/hour"),
+            rate_limit_forgot_password=os.environ.get(
+                "RATE_LIMIT_FORGOT_PASSWORD", "3/hour"
+            ),
+            rate_limit_default=os.environ.get("RATE_LIMIT_DEFAULT", "60/minute"),
         )
 
 

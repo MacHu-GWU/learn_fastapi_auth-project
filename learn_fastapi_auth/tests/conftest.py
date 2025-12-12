@@ -31,6 +31,10 @@ async def test_session(test_engine) -> AsyncSession:
 async def client(test_engine):
     """Create test client with overridden database session."""
     from learn_fastapi_auth.app import app
+    from learn_fastapi_auth.ratelimit import reset_rate_limit_storage
+
+    # Reset rate limit storage before each test to avoid interference
+    reset_rate_limit_storage()
 
     async_session_maker = async_sessionmaker(test_engine, expire_on_commit=False)
 
@@ -46,3 +50,5 @@ async def client(test_engine):
         yield ac
 
     app.dependency_overrides.clear()
+    # Reset rate limit storage after each test as well
+    reset_rate_limit_storage()

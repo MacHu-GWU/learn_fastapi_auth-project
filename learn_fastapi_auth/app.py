@@ -12,6 +12,9 @@ from fastapi import Depends, FastAPI, Query, Request, status
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,6 +30,12 @@ from .config import config
 from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
 from .paths import dir_static, dir_templates
+from .ratelimit import (
+    create_path_rate_limit_middleware,
+    limiter,
+    rate_limit_exceeded_handler,
+    setup_rate_limiting,
+)
 from .routers import pages_router
 from .schemas import (
     ChangePasswordRequest,
@@ -52,6 +61,20 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Setup rate limiting
+setup_rate_limiting(app)
+app.add_middleware(SlowAPIMiddleware)
+
+# Add path-based rate limiting for fastapi-users routes
+# This middleware must be added BEFORE SlowAPIMiddleware takes effect
+# Rate limits are configured in config.py and can be overridden via environment variables
+path_rate_limits = {
+    "/api/auth/login": config.rate_limit_login,  # Login: 5/minute (prevent brute force)
+    "/api/auth/register": config.rate_limit_register,  # Register: 10/hour (prevent spam)
+    "/api/auth/forgot-password": config.rate_limit_forgot_password,  # Reset: 3/hour
+}
+app.middleware("http")(create_path_rate_limit_middleware(path_rate_limits))
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(dir_static)), name="static")
@@ -106,7 +129,9 @@ app.include_router(
 # Custom Authentication Routes
 # =============================================================================
 @app.post("/api/auth/logout", response_model=MessageResponse, tags=["auth"])
+@limiter.limit(config.rate_limit_default)
 async def logout(
+    request: Request,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -117,7 +142,9 @@ async def logout(
 
 
 @app.post("/api/auth/change-password", response_model=MessageResponse, tags=["auth"])
+@limiter.limit(config.rate_limit_login)
 async def change_password(
+    request: Request,
     data: ChangePasswordRequest,
     user: User = Depends(current_active_user),
     user_manager=Depends(get_user_manager),
@@ -194,7 +221,9 @@ async def reset_password_redirect(
 # User Data API Routes
 # =============================================================================
 @app.get("/api/user-data", response_model=UserDataRead, tags=["user-data"])
+@limiter.limit(config.rate_limit_default)
 async def get_user_data(
+    request: Request,
     user: User = Depends(current_verified_user),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -213,7 +242,9 @@ async def get_user_data(
 
 
 @app.put("/api/user-data", response_model=UserDataRead, tags=["user-data"])
+@limiter.limit(config.rate_limit_default)
 async def update_user_data(
+    request: Request,
     data: UserDataUpdate,
     user: User = Depends(current_verified_user),
     session: AsyncSession = Depends(get_async_session),
