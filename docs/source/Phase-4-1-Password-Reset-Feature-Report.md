@@ -24,6 +24,7 @@ This report documents the implementation of two password management features:
 - Email sending function `send_password_reset_email()` added to `auth/email.py`
 - `on_after_forgot_password` hook updated to send reset email
 - Redirect route `/auth/reset-password` for handling email links
+- **Token expiration**: Configured via `reset_password_token_lifetime_seconds` in UserManager
 
 **Frontend**:
 - `forgot_password.html` - Form to request password reset
@@ -47,12 +48,25 @@ This report documents the implementation of two password management features:
 - Change Password modal with form
 - JavaScript handler in `app.js`
 
+## Token Expiration Implementation
+
+Password reset token expiration is handled by **fastapi-users internally**:
+
+1. **Configuration**: `config.py` defines `reset_password_token_lifetime` (default: 900 seconds = 15 minutes)
+2. **UserManager**: Sets `reset_password_token_lifetime_seconds = config.reset_password_token_lifetime`
+3. **Token Generation**: fastapi-users generates JWT token with expiration claim
+4. **Token Validation**: fastapi-users validates token expiration when `POST /api/auth/reset-password` is called
+5. **Error Handling**: Returns `RESET_PASSWORD_BAD_TOKEN` if token expired or invalid
+
+Environment variable: `RESET_PASSWORD_TOKEN_LIFETIME` (seconds, default 900)
+
 ## Files Modified
 
 | File | Changes |
 |------|---------|
+| `learn_fastapi_auth/config.py` | Added `reset_password_token_lifetime` config |
 | `learn_fastapi_auth/auth/email.py` | Added password reset email functions |
-| `learn_fastapi_auth/auth/users.py` | Updated `on_after_forgot_password` hook |
+| `learn_fastapi_auth/auth/users.py` | Added `reset_password_token_lifetime_seconds`, updated hook |
 | `learn_fastapi_auth/app.py` | Added change-password endpoint and reset-password redirect |
 | `learn_fastapi_auth/schemas.py` | Added `ChangePasswordRequest` schema |
 | `learn_fastapi_auth/routers/pages.py` | Added forgot-password and reset-password routes |
@@ -77,6 +91,12 @@ This report documents the implementation of two password management features:
 5. Enter new password
 6. Sign in with new password
 
+### Test Token Expiration:
+1. Request password reset
+2. Wait 15+ minutes (or change `RESET_PASSWORD_TOKEN_LIFETIME` to a shorter value for testing)
+3. Try to use the reset link
+4. Should show "Reset link has expired" error
+
 ### Test Change Password:
 1. Sign in to your account
 2. Go to `/app`
@@ -87,7 +107,8 @@ This report documents the implementation of two password management features:
 
 ## Security Considerations
 
-- Password reset tokens expire after 15 minutes
+- Password reset tokens expire after 15 minutes (configurable)
 - Forgot password endpoint returns 202 for all emails (doesn't reveal if email exists)
 - Change password requires current password verification
 - All password changes require authentication
+- Token expiration validation is handled by fastapi-users JWT verification

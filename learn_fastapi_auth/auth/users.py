@@ -39,7 +39,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     """
 
     reset_password_token_secret = config.secret_key
+    reset_password_token_lifetime_seconds = config.reset_password_token_lifetime
     verification_token_secret = config.secret_key
+    verification_token_lifetime_seconds = config.verification_token_lifetime
 
     async def on_after_register(
         self,

@@ -36,6 +36,7 @@ class Config:
     # Application
     frontend_url: str = dataclasses.field()
     verification_token_lifetime: int = dataclasses.field()
+    reset_password_token_lifetime: int = dataclasses.field()
     access_token_lifetime: int = dataclasses.field()
 
     @classmethod
@@ -62,6 +63,9 @@ class Config:
             frontend_url=os.environ.get("FRONTEND_URL", "http://localhost:8000"),
             verification_token_lifetime=int(
                 os.environ.get("VERIFICATION_TOKEN_LIFETIME", "900")
+            ),
+            reset_password_token_lifetime=int(
+                os.environ.get("RESET_PASSWORD_TOKEN_LIFETIME", "900")
             ),
             access_token_lifetime=int(
                 os.environ.get("ACCESS_TOKEN_LIFETIME", "3600")
