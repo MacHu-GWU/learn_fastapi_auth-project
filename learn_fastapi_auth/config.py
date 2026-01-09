@@ -38,6 +38,12 @@ class Config:
     verification_token_lifetime: int = dataclasses.field()
     reset_password_token_lifetime: int = dataclasses.field()
     access_token_lifetime: int = dataclasses.field()
+    refresh_token_lifetime: int = dataclasses.field()
+
+    # Refresh Token Cookie
+    refresh_token_cookie_name: str = dataclasses.field()
+    refresh_token_cookie_secure: bool = dataclasses.field()
+    refresh_token_cookie_samesite: str = dataclasses.field()
 
     # Rate Limiting
     rate_limit_login: str = dataclasses.field()
@@ -80,6 +86,20 @@ class Config:
             ),
             access_token_lifetime=int(
                 os.environ.get("ACCESS_TOKEN_LIFETIME", "3600")
+            ),
+            refresh_token_lifetime=int(
+                os.environ.get("REFRESH_TOKEN_LIFETIME", "604800")  # 7 days
+            ),
+            # Refresh Token Cookie
+            refresh_token_cookie_name=os.environ.get(
+                "REFRESH_TOKEN_COOKIE_NAME", "refresh_token"
+            ),
+            refresh_token_cookie_secure=os.environ.get(
+                "REFRESH_TOKEN_COOKIE_SECURE", "False"
+            ).lower()
+            == "true",
+            refresh_token_cookie_samesite=os.environ.get(
+                "REFRESH_TOKEN_COOKIE_SAMESITE", "lax"
             ),
             # Rate Limiting (default values follow common security practices)
             rate_limit_login=os.environ.get("RATE_LIMIT_LOGIN", "5/minute"),

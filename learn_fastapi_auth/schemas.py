@@ -68,6 +68,13 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class TokenRefreshResponse(BaseModel):
+    """Schema for token refresh response."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
 # =============================================================================
 # Password Change Schema
 # =============================================================================

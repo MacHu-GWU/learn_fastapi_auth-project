@@ -8,8 +8,8 @@ This module initializes the FastAPI application with all routes and configuratio
 
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Query, Request, status
-from fastapi.responses import RedirectResponse
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request, status
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from slowapi import _rate_limit_exceeded_handler
@@ -31,6 +31,13 @@ from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
 from .paths import dir_static, dir_templates
 from .csrf import get_csrf_token, setup_csrf_protection
+from .refresh_token import (
+    create_refresh_token,
+    get_refresh_token_cookie_settings,
+    revoke_all_user_refresh_tokens,
+    revoke_refresh_token,
+    validate_refresh_token,
+)
 from .ratelimit import (
     create_path_rate_limit_middleware,
     limiter,
@@ -41,6 +48,7 @@ from .routers import pages_router
 from .schemas import (
     ChangePasswordRequest,
     MessageResponse,
+    TokenRefreshResponse,
     UserCreate,
     UserDataRead,
     UserDataUpdate,
@@ -81,6 +89,82 @@ app.middleware("http")(create_path_rate_limit_middleware(path_rate_limits))
 # Note: API endpoints using Bearer token auth are exempt from CSRF checks
 # because they don't use cookies for authentication
 setup_csrf_protection(app, config.secret_key)
+
+
+# =============================================================================
+# Login Middleware - Sets Refresh Token Cookie After Successful Login
+# =============================================================================
+@app.middleware("http")
+async def add_refresh_token_on_login(request: Request, call_next):
+    """
+    Middleware to add refresh token cookie after successful login.
+
+    This intercepts responses from /api/auth/login and adds a refresh token
+    cookie for the token refresh mechanism.
+    """
+    import json
+    import jwt
+
+    response = await call_next(request)
+
+    # Only process POST to login endpoint with successful response
+    if (
+        request.url.path == "/api/auth/login"
+        and request.method == "POST"
+        and response.status_code == 200
+    ):
+        # Read the response body to get the access token
+        body = b""
+        async for chunk in response.body_iterator:
+            body += chunk
+
+        try:
+            # Parse the JSON response to get access_token
+            data = json.loads(body.decode())
+            access_token = data.get("access_token")
+
+            if access_token:
+                # Decode JWT to get user_id (without verification since we trust it)
+                payload = jwt.decode(
+                    access_token, options={"verify_signature": False}
+                )
+                user_id = payload.get("sub")
+
+                if user_id:
+                    # Create refresh token and store in database
+                    from .database import async_session_maker
+                    import uuid
+
+                    async with async_session_maker() as session:
+                        refresh_token_str = await create_refresh_token(
+                            session, uuid.UUID(user_id)
+                        )
+
+                    # Create new response with refresh token cookie
+                    new_response = JSONResponse(
+                        content=data,
+                        status_code=response.status_code,
+                        headers=dict(response.headers),
+                    )
+                    cookie_settings = get_refresh_token_cookie_settings()
+                    new_response.set_cookie(
+                        value=refresh_token_str,
+                        **cookie_settings,
+                    )
+                    return new_response
+        except Exception:
+            # If anything fails, return original response
+            pass
+
+        # Return response with original body
+        return JSONResponse(
+            content=json.loads(body.decode()) if body else {},
+            status_code=response.status_code,
+            headers=dict(response.headers),
+        )
+
+    return response
+
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(dir_static)), name="static")
@@ -145,10 +229,109 @@ async def logout(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    """Logout user by invalidating their token."""
-    # Note: In a production system, you would get the token from the request
-    # and delete it from the database. For simplicity, we just return success.
-    return MessageResponse(message="Successfully logged out")
+    """
+    Logout user by revoking their refresh token.
+
+    Clears the refresh token cookie and removes it from the database.
+    """
+    # Get refresh token from cookie
+    refresh_token = request.cookies.get(config.refresh_token_cookie_name)
+
+    if refresh_token:
+        await revoke_refresh_token(session, refresh_token)
+
+    # Create response that clears the refresh token cookie
+    response = JSONResponse(
+        content={"message": "Successfully logged out"},
+        status_code=200,
+    )
+    response.delete_cookie(
+        key=config.refresh_token_cookie_name,
+        path="/api/auth",
+    )
+    return response
+
+
+@app.post("/api/auth/refresh", response_model=TokenRefreshResponse, tags=["auth"])
+@limiter.limit(config.rate_limit_default)
+async def refresh_access_token(
+    request: Request,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Get a new access token using the refresh token.
+
+    The refresh token is read from the HttpOnly cookie set during login.
+    If the refresh token is valid and not expired, a new access token is issued.
+    """
+    from .auth.users import get_jwt_strategy, get_user_db
+    from sqlalchemy import select
+    from .models import User as UserModel
+
+    # Get refresh token from cookie
+    refresh_token = request.cookies.get(config.refresh_token_cookie_name)
+
+    if not refresh_token:
+        raise HTTPException(
+            status_code=401,
+            detail="REFRESH_TOKEN_MISSING",
+        )
+
+    # Validate refresh token and get user_id
+    user_id = await validate_refresh_token(session, refresh_token)
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="REFRESH_TOKEN_INVALID",
+        )
+
+    # Get user from database
+    result = await session.execute(
+        select(UserModel).where(UserModel.id == user_id)
+    )
+    user = result.scalar_one_or_none()
+
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=401,
+            detail="USER_INACTIVE",
+        )
+
+    # Generate new access token
+    jwt_strategy = get_jwt_strategy()
+    access_token = await jwt_strategy.write_token(user)
+
+    return TokenRefreshResponse(access_token=access_token)
+
+
+@app.post("/api/auth/logout-all", response_model=MessageResponse, tags=["auth"])
+@limiter.limit(config.rate_limit_login)
+async def logout_all_devices(
+    request: Request,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Logout from all devices by revoking all refresh tokens.
+
+    This invalidates all refresh tokens for the current user,
+    effectively logging them out from all devices.
+    """
+    count = await revoke_all_user_refresh_tokens(session, user.id)
+
+    # Create response that clears the refresh token cookie
+    response = JSONResponse(
+        content={
+            "message": f"Successfully logged out from all devices. Revoked {count} sessions."
+        },
+        status_code=200,
+    )
+    response.delete_cookie(
+        key=config.refresh_token_cookie_name,
+        path="/api/auth",
+    )
+    return response
 
 
 @app.post("/api/auth/change-password", response_model=MessageResponse, tags=["auth"])

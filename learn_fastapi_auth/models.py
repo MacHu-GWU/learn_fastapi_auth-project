@@ -51,6 +51,9 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     tokens: Mapped[list["Token"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserData(Base):
@@ -97,3 +100,31 @@ class Token(Base):
 
     # Relationship back to User
     user: Mapped["User"] = relationship(back_populates="tokens")
+
+
+class RefreshToken(Base):
+    """
+    Refresh token storage for token refresh mechanism.
+
+    Refresh tokens are long-lived tokens used to obtain new access tokens
+    without requiring the user to re-authenticate.
+
+    Stored in database for:
+    - Validation on refresh requests
+    - Revocation support (logout from all devices)
+    - Token rotation (optional security enhancement)
+    """
+
+    __tablename__ = "refresh_tokens"
+
+    token: Mapped[str] = mapped_column(String(500), primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    # Relationship back to User
+    user: Mapped["User"] = relationship(back_populates="refresh_tokens")

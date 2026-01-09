@@ -2,6 +2,7 @@
 data.db
 .idea
 claude-code-message.md
+tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
