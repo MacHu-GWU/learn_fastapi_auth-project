@@ -111,6 +111,9 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             print(f"Created UserData for user {user.id}")
 
         await session.commit()
+        # Refresh user to ensure all attributes (like updated_at) are loaded
+        # This prevents "MissingGreenlet" error when fastapi-users serializes the response
+        await session.refresh(user)
 
 
 async def get_user_manager(
