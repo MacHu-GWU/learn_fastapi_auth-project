@@ -501,3 +501,11 @@ async def health_check():
     return {"status": "healthy"}
 
 
+# =============================================================================
+# Admin Dashboard (SQLAdmin)
+# =============================================================================
+from .admin import setup_admin
+
+setup_admin(app)
+
+

@@ -60,6 +60,8 @@ dependencies = [
     "slowapi>=0.1.9,<1.0.0",  # Request rate limiting
     # CSRF Protection
     "starlette-csrf>=3.0.0,<4.0.0",  # CSRF protection middleware
+    # Admin Dashboard
+    "sqladmin>=0.20.0,<1.0.0",  # Admin dashboard for SQLAlchemy
 ]
 
 # ------------------------------------------------------------------------------

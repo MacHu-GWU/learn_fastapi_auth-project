@@ -73,6 +73,8 @@ def create_csrf_exempt_patterns() -> List[re.Pattern]:
         re.compile(r"^/docs.*"),
         re.compile(r"^/redoc.*"),
         re.compile(r"^/openapi\.json$"),
+        # Admin dashboard uses its own session-based authentication
+        re.compile(r"^/admin.*"),
     ]
     return exempt_patterns
 
