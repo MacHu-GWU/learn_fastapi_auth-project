@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 // =============================================================================
 
 async function loadUserData() {
+    const dataDisplay = document.getElementById('data-display');
+
+    // Show skeleton loading while fetching data
+    if (dataDisplay) {
+        showSkeleton(dataDisplay, 4);
+    }
+
     try {
         const response = await apiRequest('/api/user-data');
 
@@ -44,10 +51,12 @@ async function loadUserData() {
         } else {
             const error = await response.json();
             showToast(error.detail || 'Failed to load data', 'error');
+            displayUserData(''); // Clear skeleton on error
         }
     } catch (error) {
         console.error('Error loading user data:', error);
         showToast('Failed to load data. Please try again.', 'error');
+        displayUserData(''); // Clear skeleton on error
     }
 }
 
@@ -157,9 +166,8 @@ async function saveUserData() {
 
     const newData = textarea.value;
 
-    // Disable button and show loading
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
+    // Use the loading state utility
+    setButtonLoading(saveBtn, 'Saving...');
 
     try {
         const response = await apiRequest('/api/user-data', {
@@ -183,8 +191,7 @@ async function saveUserData() {
         console.error('Error saving user data:', error);
         showToast('Failed to save data. Please try again.', 'error');
     } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Save';
+        resetButton(saveBtn);
     }
 }
 
@@ -253,9 +260,8 @@ async function handleChangePassword(e) {
 
     if (hasError) return;
 
-    // Submit
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner"></span> Changing...';
+    // Use the loading state utility
+    setButtonLoading(saveBtn, 'Changing...');
 
     try {
         const response = await apiRequest('/api/auth/change-password', {
@@ -283,7 +289,6 @@ async function handleChangePassword(e) {
         console.error('Error changing password:', error);
         showToast('Failed to change password. Please try again.', 'error');
     } finally {
-        saveBtn.disabled = false;
-        saveBtn.textContent = 'Change Password';
+        resetButton(saveBtn);
     }
 }

@@ -142,6 +142,114 @@ async function apiRequest(url, options = {}) {
 }
 
 // =============================================================================
+// Loading State Helpers
+// =============================================================================
+
+/**
+ * Set a button to loading state.
+ * Stores original text in data attribute for later restoration.
+ *
+ * @param {HTMLButtonElement} button - The button element
+ * @param {string} loadingText - Text to show while loading (default: 'Loading...')
+ */
+function setButtonLoading(button, loadingText = 'Loading...') {
+    if (!button) return;
+
+    // Store original text if not already stored
+    if (!button.dataset.originalText) {
+        button.dataset.originalText = button.textContent;
+    }
+
+    button.disabled = true;
+    button.classList.add('loading');
+    button.innerHTML = `<span class="spinner"></span> ${loadingText}`;
+}
+
+/**
+ * Reset a button from loading state to its original state.
+ *
+ * @param {HTMLButtonElement} button - The button element
+ * @param {string} text - Optional text to set (defaults to original text)
+ */
+function resetButton(button, text = null) {
+    if (!button) return;
+
+    button.disabled = false;
+    button.classList.remove('loading');
+    button.textContent = text || button.dataset.originalText || 'Submit';
+}
+
+/**
+ * Show a full-page loading overlay.
+ *
+ * @param {string} message - Loading message to display
+ * @returns {HTMLElement} The loading overlay element
+ */
+function showPageLoading(message = 'Loading...') {
+    // Remove existing overlay if any
+    hidePageLoading();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'page-loading-overlay';
+    overlay.className = 'page-loading';
+    overlay.innerHTML = `
+        <span class="spinner spinner-lg spinner-primary"></span>
+        <span class="page-loading-text">${message}</span>
+    `;
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+/**
+ * Hide the full-page loading overlay.
+ */
+function hidePageLoading() {
+    const overlay = document.getElementById('page-loading-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+/**
+ * Show skeleton loading placeholders in a container.
+ *
+ * @param {HTMLElement} container - Container element
+ * @param {number} lines - Number of skeleton lines to show
+ */
+function showSkeleton(container, lines = 3) {
+    if (!container) return;
+
+    container.innerHTML = '';
+    for (let i = 0; i < lines; i++) {
+        const skeleton = document.createElement('div');
+        skeleton.className = 'skeleton skeleton-text';
+        container.appendChild(skeleton);
+    }
+}
+
+/**
+ * Add loading class to an element to show content loading indicator.
+ *
+ * @param {HTMLElement} element - The element to mark as loading
+ */
+function setContentLoading(element) {
+    if (element) {
+        element.classList.add('content-loading');
+    }
+}
+
+/**
+ * Remove loading class from an element.
+ *
+ * @param {HTMLElement} element - The element to unmark
+ */
+function clearContentLoading(element) {
+    if (element) {
+        element.classList.remove('content-loading');
+    }
+}
+
+// =============================================================================
 // Form Validation Helpers
 // =============================================================================
 

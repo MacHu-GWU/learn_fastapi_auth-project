@@ -415,18 +415,120 @@ body {
 /* Loading Spinner */
 .spinner {
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #fff;
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
     border-radius: 50%;
     border-top-color: transparent;
     animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+/* Spinner color variants */
+.spinner-white {
+    border-color: #fff;
+    border-top-color: transparent;
+}
+
+.spinner-primary {
+    border-color: #007bff;
+    border-top-color: transparent;
+}
+
+.spinner-dark {
+    border-color: #333;
+    border-top-color: transparent;
+}
+
+/* Larger spinner for page loading */
+.spinner-lg {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
 }
 
 @keyframes spin {
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Page Loading Overlay */
+.page-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.page-loading-text {
+    margin-top: 15px;
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Loading Content Placeholder (Skeleton) */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5em;
+}
+
+.skeleton-text:last-child {
+    width: 60%;
+}
+
+.skeleton-box {
+    height: 150px;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Button loading state */
+.btn.loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* Content loading state */
+.content-loading {
+    position: relative;
+    min-height: 100px;
+}
+
+.content-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border: 2px solid #007bff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.8s linear infinite;
 }
 
 /* Responsive */

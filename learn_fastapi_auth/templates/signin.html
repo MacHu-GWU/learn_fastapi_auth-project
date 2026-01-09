@@ -65,9 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (hasError) return;
 
-        // Submit
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span> Signing In...';
+        // Submit - use loading state utility
+        setButtonLoading(submitBtn, 'Signing In...');
 
         try {
             // Use form-urlencoded for OAuth2 password flow
@@ -108,8 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Login error:', error);
             showToast('An error occurred. Please try again.', 'error');
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Sign In';
+            resetButton(submitBtn);
         }
     });
 });

@@ -63,9 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (hasError) return;
 
-        // Submit
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span> Creating Account...';
+        // Submit - use loading state utility
+        setButtonLoading(submitBtn, 'Creating Account...');
 
         try {
             const response = await fetch('/api/auth/register', {
@@ -95,8 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Registration error:', error);
             showToast('An error occurred. Please try again.', 'error');
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Create Account';
+            resetButton(submitBtn);
         }
     });
 });
