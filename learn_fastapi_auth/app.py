@@ -101,9 +101,35 @@ async def add_refresh_token_on_login(request: Request, call_next):
 
     This intercepts responses from /api/auth/login and adds a refresh token
     cookie for the token refresh mechanism.
+
+    Supports "Remember Me" functionality:
+    - If remember_me=true: refresh token lasts 30 days
+    - If remember_me=false (default): refresh token lasts 7 days
     """
     import json
     import jwt
+
+    # Check if this is a login request and extract remember_me before processing
+    remember_me = False
+    if request.url.path == "/api/auth/login" and request.method == "POST":
+        # Read and cache request body to extract remember_me
+        body_bytes = await request.body()
+
+        # Parse form data to get remember_me parameter
+        try:
+            from urllib.parse import parse_qs
+            form_data = parse_qs(body_bytes.decode())
+            remember_me_values = form_data.get("remember_me", ["false"])
+            remember_me = remember_me_values[0].lower() == "true"
+        except Exception:
+            pass
+
+        # Store the body in request state so it can be re-read by the route
+        # We need to replace the receive to allow body to be read again
+        async def receive():
+            return {"type": "http.request", "body": body_bytes}
+
+        request = Request(request.scope, receive, request._send)
 
     response = await call_next(request)
 
@@ -135,9 +161,16 @@ async def add_refresh_token_on_login(request: Request, call_next):
                     from .database import async_session_maker
                     import uuid
 
+                    # Determine token lifetime based on remember_me
+                    token_lifetime = (
+                        config.remember_me_refresh_token_lifetime
+                        if remember_me
+                        else config.refresh_token_lifetime
+                    )
+
                     async with async_session_maker() as session:
                         refresh_token_str = await create_refresh_token(
-                            session, uuid.UUID(user_id)
+                            session, uuid.UUID(user_id), token_lifetime
                         )
 
                     # Create new response with refresh token cookie
@@ -146,7 +179,7 @@ async def add_refresh_token_on_login(request: Request, call_next):
                         status_code=response.status_code,
                         headers=dict(response.headers),
                     )
-                    cookie_settings = get_refresh_token_cookie_settings()
+                    cookie_settings = get_refresh_token_cookie_settings(token_lifetime)
                     new_response.set_cookie(
                         value=refresh_token_str,
                         **cookie_settings,

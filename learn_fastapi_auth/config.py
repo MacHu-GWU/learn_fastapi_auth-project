@@ -39,6 +39,7 @@ class Config:
     reset_password_token_lifetime: int = dataclasses.field()
     access_token_lifetime: int = dataclasses.field()
     refresh_token_lifetime: int = dataclasses.field()
+    remember_me_refresh_token_lifetime: int = dataclasses.field()
 
     # Refresh Token Cookie
     refresh_token_cookie_name: str = dataclasses.field()
@@ -89,6 +90,9 @@ class Config:
             ),
             refresh_token_lifetime=int(
                 os.environ.get("REFRESH_TOKEN_LIFETIME", "604800")  # 7 days
+            ),
+            remember_me_refresh_token_lifetime=int(
+                os.environ.get("REMEMBER_ME_REFRESH_TOKEN_LIFETIME", "2592000")  # 30 days
             ),
             # Refresh Token Cookie
             refresh_token_cookie_name=os.environ.get(

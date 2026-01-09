@@ -221,6 +221,27 @@ body {
     width: 100%;
 }
 
+/* Remember Me Checkbox */
+.form-group-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.form-group-checkbox input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.form-group-checkbox label {
+    display: inline;
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+    user-select: none;
+}
+
 /* Auth Links */
 .auth-link {
     text-align: center;

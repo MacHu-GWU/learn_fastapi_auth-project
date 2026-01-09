@@ -41,6 +41,7 @@ def generate_refresh_token() -> str:
 async def create_refresh_token(
     session: AsyncSession,
     user_id: uuid.UUID,
+    lifetime_seconds: Optional[int] = None,
 ) -> str:
     """
     Create and store a new refresh token for a user.
@@ -48,13 +49,16 @@ async def create_refresh_token(
     Args:
         session: Database session
         user_id: UUID of the user
+        lifetime_seconds: Optional custom lifetime in seconds. If None, uses
+            config.refresh_token_lifetime (7 days by default).
 
     Returns:
         The generated refresh token string
     """
     token_str = generate_refresh_token()
+    actual_lifetime = lifetime_seconds if lifetime_seconds is not None else config.refresh_token_lifetime
     expires_at = datetime.now(timezone.utc) + timedelta(
-        seconds=config.refresh_token_lifetime
+        seconds=actual_lifetime
     )
 
     refresh_token = RefreshToken(
@@ -185,21 +189,26 @@ async def cleanup_expired_tokens(
     return result.rowcount
 
 
-def get_refresh_token_cookie_settings() -> dict:
+def get_refresh_token_cookie_settings(lifetime_seconds: Optional[int] = None) -> dict:
     """
     Get cookie settings for refresh token.
 
     Returns a dictionary of cookie settings that should be used
     when setting the refresh token cookie in responses.
 
+    Args:
+        lifetime_seconds: Optional custom lifetime in seconds. If None, uses
+            config.refresh_token_lifetime (7 days by default).
+
     Returns:
         Dictionary with cookie configuration
     """
+    actual_lifetime = lifetime_seconds if lifetime_seconds is not None else config.refresh_token_lifetime
     return {
         "key": config.refresh_token_cookie_name,
         "httponly": True,  # JavaScript cannot access this cookie
         "secure": config.refresh_token_cookie_secure,
         "samesite": config.refresh_token_cookie_samesite,
-        "max_age": config.refresh_token_lifetime,
+        "max_age": actual_lifetime,
         "path": "/api/auth",  # Only send cookie to auth endpoints
     }
