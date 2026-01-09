@@ -83,16 +83,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/';
                 }, 3000);
             } else {
-                // Handle specific error messages
-                if (data.detail === 'REGISTER_USER_ALREADY_EXISTS') {
-                    showFieldError('email', 'An account with this email already exists');
+                // Handle specific error messages using centralized error handling
+                const errorCode = data.detail;
+                const fieldError = getFieldError(errorCode);
+
+                if (fieldError) {
+                    // Field-specific error - show inline
+                    showFieldError(fieldError.field, fieldError.message);
                 } else {
-                    showToast(data.detail || 'Registration failed', 'error');
+                    // General error - show toast
+                    const message = getErrorMessage(errorCode, 'Registration failed. Please try again.');
+                    showToast(message, 'error');
                 }
             }
         } catch (error) {
             console.error('Registration error:', error);
-            showToast('An error occurred. Please try again.', 'error');
+            showToast(getErrorMessage('NETWORK_ERROR'), 'error');
         } finally {
             resetButton(submitBtn);
         }

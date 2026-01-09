@@ -50,12 +50,13 @@ async function loadUserData() {
             displayUserData(currentUserData);
         } else {
             const error = await response.json();
-            showToast(error.detail || 'Failed to load data', 'error');
+            const message = getErrorMessage(error.detail, 'Failed to load data. Please try again.');
+            showToast(message, 'error');
             displayUserData(''); // Clear skeleton on error
         }
     } catch (error) {
         console.error('Error loading user data:', error);
-        showToast('Failed to load data. Please try again.', 'error');
+        showToast(getErrorMessage('NETWORK_ERROR'), 'error');
         displayUserData(''); // Clear skeleton on error
     }
 }
@@ -185,11 +186,12 @@ async function saveUserData() {
             showToast('Data saved successfully!', 'success');
         } else {
             const error = await response.json();
-            showToast(error.detail || 'Failed to save data', 'error');
+            const message = getErrorMessage(error.detail, 'Failed to save data. Please try again.');
+            showToast(message, 'error');
         }
     } catch (error) {
         console.error('Error saving user data:', error);
-        showToast('Failed to save data. Please try again.', 'error');
+        showToast(getErrorMessage('NETWORK_ERROR'), 'error');
     } finally {
         resetButton(saveBtn);
     }
@@ -279,15 +281,21 @@ async function handleChangePassword(e) {
             showToast('Password changed successfully!', 'success');
         } else {
             const error = await response.json();
-            if (error.detail === 'CHANGE_PASSWORD_INVALID_CURRENT') {
-                showPasswordFieldError('current-password', 'Current password is incorrect');
+            const errorCode = error.detail;
+            const fieldError = getFieldError(errorCode);
+
+            if (fieldError) {
+                // Field-specific error - show inline
+                showPasswordFieldError(fieldError.field, fieldError.message);
             } else {
-                showToast(error.detail || 'Failed to change password', 'error');
+                // General error - show toast
+                const message = getErrorMessage(errorCode, 'Failed to change password. Please try again.');
+                showToast(message, 'error');
             }
         }
     } catch (error) {
         console.error('Error changing password:', error);
-        showToast('Failed to change password. Please try again.', 'error');
+        showToast(getErrorMessage('NETWORK_ERROR'), 'error');
     } finally {
         resetButton(saveBtn);
     }

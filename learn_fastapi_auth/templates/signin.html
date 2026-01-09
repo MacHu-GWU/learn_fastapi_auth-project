@@ -94,18 +94,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '/app';
                 }, 1000);
             } else {
-                // Handle specific error messages
-                if (data.detail === 'LOGIN_BAD_CREDENTIALS') {
-                    showToast('Invalid email or password', 'error');
-                } else if (data.detail === 'LOGIN_USER_NOT_VERIFIED') {
-                    showToast('Please verify your email before signing in', 'error');
-                } else {
-                    showToast(data.detail || 'Login failed', 'error');
-                }
+                // Handle error messages using centralized error handling
+                const errorCode = data.detail;
+                const message = getErrorMessage(errorCode, 'Login failed. Please try again.');
+                showToast(message, 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            showToast('An error occurred. Please try again.', 'error');
+            showToast(getErrorMessage('NETWORK_ERROR'), 'error');
         } finally {
             resetButton(submitBtn);
         }
@@ -130,16 +126,16 @@ async function verifyEmail(token) {
             window.history.replaceState({}, document.title, '/signin?verified=success');
         } else {
             const data = await response.json();
-            if (data.detail === 'VERIFY_USER_ALREADY_VERIFIED') {
-                showToast('Email already verified. Please sign in.', 'info');
-            } else {
-                showToast('Verification failed. The link may have expired.', 'error');
-            }
+            const errorCode = data.detail;
+            // Use info type for already verified (not really an error)
+            const toastType = errorCode === 'VERIFY_USER_ALREADY_VERIFIED' ? 'info' : 'error';
+            const message = getErrorMessage(errorCode, 'Verification failed. The link may have expired.');
+            showToast(message, toastType);
             window.history.replaceState({}, document.title, '/signin');
         }
     } catch (error) {
         console.error('Verification error:', error);
-        showToast('Verification failed. Please try again.', 'error');
+        showToast(getErrorMessage('NETWORK_ERROR'), 'error');
         window.history.replaceState({}, document.title, '/signin');
     }
 }
