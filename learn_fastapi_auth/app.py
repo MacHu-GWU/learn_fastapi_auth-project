@@ -30,6 +30,7 @@ from .config import config
 from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
 from .paths import dir_static, dir_templates
+from .csrf import get_csrf_token, setup_csrf_protection
 from .ratelimit import (
     create_path_rate_limit_middleware,
     limiter,
@@ -76,11 +77,20 @@ path_rate_limits = {
 }
 app.middleware("http")(create_path_rate_limit_middleware(path_rate_limits))
 
+# Setup CSRF protection
+# Note: API endpoints using Bearer token auth are exempt from CSRF checks
+# because they don't use cookies for authentication
+setup_csrf_protection(app, config.secret_key)
+
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(dir_static)), name="static")
 
 # Jinja2 templates
 templates = Jinja2Templates(directory=str(dir_templates))
+
+# Add CSRF token function to Jinja2 globals for use in templates
+# Usage in templates: {{ get_csrf_token(request) }}
+templates.env.globals["get_csrf_token"] = get_csrf_token
 
 # Include page router (HTML pages)
 app.include_router(pages_router)

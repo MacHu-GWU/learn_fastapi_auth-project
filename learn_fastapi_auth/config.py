@@ -45,6 +45,11 @@ class Config:
     rate_limit_forgot_password: str = dataclasses.field()
     rate_limit_default: str = dataclasses.field()
 
+    # CSRF Protection
+    csrf_cookie_name: str = dataclasses.field()
+    csrf_cookie_secure: bool = dataclasses.field()
+    csrf_cookie_samesite: str = dataclasses.field()
+
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
@@ -83,6 +88,11 @@ class Config:
                 "RATE_LIMIT_FORGOT_PASSWORD", "3/hour"
             ),
             rate_limit_default=os.environ.get("RATE_LIMIT_DEFAULT", "60/minute"),
+            # CSRF Protection
+            csrf_cookie_name=os.environ.get("CSRF_COOKIE_NAME", "csrftoken"),
+            csrf_cookie_secure=os.environ.get("CSRF_COOKIE_SECURE", "False").lower()
+            == "true",
+            csrf_cookie_samesite=os.environ.get("CSRF_COOKIE_SAMESITE", "lax"),
         )
 
 
