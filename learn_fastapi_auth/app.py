@@ -9,6 +9,7 @@ This module initializes the FastAPI application with all routes and configuratio
 from contextlib import asynccontextmanager
 
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -81,6 +82,20 @@ app = FastAPI(
     description="A SaaS authentication service with email verification",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+# CORS configuration for Next.js frontend
+# In development, Next.js runs on port 3000
+# In production, update CORS_ORIGINS environment variable
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Next.js dev server
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,  # Allow cookies for refresh token
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Setup rate limiting

@@ -88,10 +88,31 @@ run = """
 """
 depends = ['build']
 
-[tasks.run]
-description = "Run debug server at localhost"
+[tasks.run-backend]
+description = "Run FastAPI backend server at localhost:8000"
 run = """
 .venv/bin/python main.py
+"""
+depends = ['inst']
+
+[tasks.run-frontend]
+description = "Run Next.js frontend dev server at localhost:3000"
+run = """
+cd frontend && npm install && npm run dev
+"""
+
+[tasks.run]
+description = "⭐ Run both backend (port 8000) and frontend (port 3000) servers"
+run = """
+# Start backend in background
+.venv/bin/python main.py &
+BACKEND_PID=$!
+
+# Trap to kill backend when script exits
+trap "kill $BACKEND_PID 2>/dev/null" EXIT
+
+# Install frontend dependencies and start frontend in foreground
+cd frontend && npm install && npm run dev
 """
 depends = ['inst']
 
