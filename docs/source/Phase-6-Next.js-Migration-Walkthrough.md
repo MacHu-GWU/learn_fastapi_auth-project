@@ -10,23 +10,23 @@ This document records the actual implementation details of migrating the fronten
 | Styling | Plain CSS | Tailwind CSS 4 |
 | Language | JavaScript | TypeScript |
 | Rendering | Server-side (Jinja2) | Client-side SPA with SSR |
-| Location | `learn_fastapi_auth/static/` + `templates/` | `frontend/` |
+| Location | `learn_fastapi_auth/static/` + `templates/` | Root directory |
 
 ## Files Created
 
-### Project Configuration
+### Project Configuration (Root Level)
 
 | File | Purpose |
 |------|---------|
-| `frontend/package.json` | Node.js project manifest with dependencies |
-| `frontend/package-lock.json` | Locked dependency versions |
-| `frontend/tsconfig.json` | TypeScript configuration with path aliases |
-| `frontend/next.config.ts` | Next.js configuration with API rewrites |
-| `frontend/postcss.config.mjs` | PostCSS configuration for Tailwind |
-| `frontend/eslint.config.mjs` | ESLint configuration |
-| `frontend/.gitignore` | Git ignore rules for Node.js project |
+| `package.json` | Node.js project manifest with dependencies |
+| `package-lock.json` | Locked dependency versions |
+| `tsconfig.json` | TypeScript configuration with path aliases |
+| `next.config.ts` | Next.js configuration with API rewrites |
+| `postcss.config.mjs` | PostCSS configuration for Tailwind |
+| `eslint.config.mjs` | ESLint configuration |
+| `next-env.d.ts` | Next.js TypeScript declarations |
 
-### Core Libraries (`frontend/lib/`)
+### Core Libraries (`lib/`)
 
 | File | Purpose | Original Source |
 |------|---------|-----------------|
@@ -35,37 +35,37 @@ This document records the actual implementation details of migrating the fronten
 | `lib/errors.ts` | Error code to message mapping | `static/js/errors.js` |
 | `lib/firebase.ts` | Firebase client initialization, Google OAuth | `static/js/firebase.js` |
 
-### Type Definitions (`frontend/types/`)
+### Type Definitions (`types/`)
 
 | File | Purpose |
 |------|---------|
 | `types/index.ts` | TypeScript interfaces for User, UserData, API responses |
 
-### UI Components (`frontend/components/ui/`)
+### UI Components (`components/ui/`)
 
 | File | Purpose |
 |------|---------|
-| `ui/Button.tsx` | Reusable button with loading state and variants |
-| `ui/Input.tsx` | Form input with label and error display |
-| `ui/Modal.tsx` | Modal dialog with backdrop and close button |
-| `ui/Toast.tsx` | Toast notification container |
-| `ui/Spinner.tsx` | Loading spinner animation |
-| `ui/index.ts` | Barrel export for all UI components |
+| `components/ui/Button.tsx` | Reusable button with loading state and variants |
+| `components/ui/Input.tsx` | Form input with label and error display |
+| `components/ui/Modal.tsx` | Modal dialog with backdrop and close button |
+| `components/ui/Toast.tsx` | Toast notification container |
+| `components/ui/Spinner.tsx` | Loading spinner animation |
+| `components/ui/index.ts` | Barrel export for all UI components |
 
-### Layout Components (`frontend/components/layout/`)
+### Layout Components (`components/layout/`)
 
 | File | Purpose |
 |------|---------|
-| `layout/Navbar.tsx` | Navigation bar with auth state awareness |
-| `layout/index.ts` | Barrel export for layout components |
+| `components/layout/Navbar.tsx` | Navigation bar with auth state awareness |
+| `components/layout/index.ts` | Barrel export for layout components |
 
-### Hooks (`frontend/hooks/`)
+### Hooks (`hooks/`)
 
 | File | Purpose |
 |------|---------|
 | `hooks/useToast.tsx` | Toast notification context and hook |
 
-### Pages (`frontend/app/`)
+### Pages (`app/`)
 
 | File | Purpose | Original Template |
 |------|---------|-------------------|
@@ -79,7 +79,7 @@ This document records the actual implementation details of migrating the fronten
 | `app/reset-password/page.tsx` | Password reset with token | `templates/reset_password.html` |
 | `app/verify-email/page.tsx` | Email verification status page | `templates/verify_email.html` |
 
-### Static Assets (`frontend/public/`)
+### Static Assets (`public/`)
 
 | File | Purpose |
 |------|---------|
@@ -116,13 +116,13 @@ Updated task definitions:
 |------|---------|-------------|
 | `run` | Starts both servers | FastAPI (8000) + Next.js (3000) |
 | `run-backend` | `.venv/bin/python main.py` | FastAPI only |
-| `run-frontend` | `cd frontend && npm run dev` | Next.js only |
+| `run-frontend` | `npm run dev` | Next.js only |
 
 ## Key Implementation Details
 
 ### 1. API Proxy Configuration
 
-`frontend/next.config.ts` configures API rewrites to proxy `/api/*` requests to the FastAPI backend:
+`next.config.ts` configures API rewrites to proxy `/api/*` requests to the FastAPI backend:
 
 ```typescript
 async rewrites() {
@@ -139,7 +139,7 @@ async rewrites() {
 
 ### 2. Token Management
 
-`frontend/lib/auth.ts` stores the access token in localStorage (same as the original JS implementation):
+`lib/auth.ts` stores the access token in localStorage (same as the original JS implementation):
 
 ```typescript
 const AUTH_TOKEN_KEY = 'auth_token';
@@ -156,7 +156,7 @@ export function setToken(token: string): void {
 
 ### 3. Auto Token Refresh
 
-`frontend/lib/api.ts` automatically refreshes expired access tokens using the refresh token (stored in HttpOnly cookie):
+`lib/api.ts` automatically refreshes expired access tokens using the refresh token (stored in HttpOnly cookie):
 
 ```typescript
 export async function apiRequest<T = unknown>(
@@ -171,7 +171,7 @@ export async function apiRequest<T = unknown>(
 
 ### 4. Google OAuth Flow
 
-`frontend/lib/firebase.ts` initializes Firebase client and provides Google sign-in:
+`lib/firebase.ts` initializes Firebase client and provides Google sign-in:
 
 ```typescript
 export async function signInWithGoogle(): Promise<string> {
@@ -186,7 +186,7 @@ The ID token is then sent to `/api/auth/google` for backend verification.
 
 ### 5. Hydration Warning Suppression
 
-`frontend/app/layout.tsx` uses `suppressHydrationWarning` on `<html>` and `<body>` to prevent errors from browser extensions that modify the DOM:
+`app/layout.tsx` uses `suppressHydrationWarning` on `<html>` and `<body>` to prevent errors from browser extensions that modify the DOM:
 
 ```tsx
 <html lang="en" suppressHydrationWarning>
@@ -210,11 +210,11 @@ export default function ResetPasswordPage() {
 ## Directory Structure
 
 ```
-frontend/
-├── app/                      # Next.js App Router pages
-│   ├── layout.tsx            # Root layout
-│   ├── globals.css           # Global styles
-│   ├── page.tsx              # Home page
+learn_fastapi_auth-project/
+├── app/                          # Next.js App Router pages
+│   ├── layout.tsx                # Root layout
+│   ├── globals.css               # Global styles
+│   ├── page.tsx                  # Home page
 │   ├── signin/page.tsx
 │   ├── signup/page.tsx
 │   ├── dashboard/page.tsx
@@ -222,10 +222,10 @@ frontend/
 │   ├── reset-password/page.tsx
 │   └── verify-email/page.tsx
 ├── components/
-│   ├── layout/               # Layout components
+│   ├── layout/                   # Layout components
 │   │   ├── Navbar.tsx
 │   │   └── index.ts
-│   └── ui/                   # Reusable UI components
+│   └── ui/                       # Reusable UI components
 │       ├── Button.tsx
 │       ├── Input.tsx
 │       ├── Modal.tsx
@@ -233,19 +233,27 @@ frontend/
 │       ├── Toast.tsx
 │       └── index.ts
 ├── hooks/
-│   └── useToast.tsx          # Toast context and hook
-├── lib/                      # Core utilities
-│   ├── api.ts                # API request wrapper
-│   ├── auth.ts               # Token management
-│   ├── errors.ts             # Error messages
-│   └── firebase.ts           # Firebase client
+│   └── useToast.tsx              # Toast context and hook
+├── lib/                          # TypeScript utilities
+│   ├── api.ts                    # API request wrapper
+│   ├── auth.ts                   # Token management
+│   ├── errors.ts                 # Error messages
+│   └── firebase.ts               # Firebase client
 ├── types/
-│   └── index.ts              # TypeScript interfaces
-├── public/                   # Static assets
-├── next.config.ts            # Next.js configuration
-├── package.json              # Dependencies
-├── tsconfig.json             # TypeScript config
-└── postcss.config.mjs        # PostCSS/Tailwind config
+│   └── index.ts                  # TypeScript interfaces
+├── public/                       # Static assets
+├── learn_fastapi_auth/           # Python backend package
+├── tests/                        # Python tests
+├── docs/                         # Documentation
+│
+├── package.json                  # Node.js dependencies
+├── pyproject.toml                # Python dependencies
+├── next.config.ts                # Next.js configuration
+├── tsconfig.json                 # TypeScript config
+├── postcss.config.mjs            # PostCSS/Tailwind config
+├── mise.toml                     # Task runner
+├── .env                          # Environment variables
+└── CLAUDE.md                     # Claude Code instructions
 ```
 
 ## Running the Application
@@ -264,7 +272,6 @@ mise run run-frontend   # Next.js at http://localhost:3000
 ### Production Build
 
 ```bash
-cd frontend
 npm run build
 npm run start
 ```
@@ -309,3 +316,14 @@ npm run start
 | @tailwindcss/postcss | ^4 | PostCSS plugin |
 | eslint | ^9 | Linting |
 | eslint-config-next | 16.1.1 | Next.js ESLint rules |
+
+## Design Decision: Root-Level Structure
+
+Initially, the Next.js frontend was placed in a `frontend/` subdirectory. This was later migrated to the root level for the following reasons:
+
+1. **Simpler tooling**: Single `mise.toml`, single `.env`, single `CLAUDE.md`
+2. **Better Claude Code workflow**: No need to manage multiple project contexts
+3. **Cleaner commands**: `npm run dev` instead of `cd frontend && npm run dev`
+4. **No conflicts**: Removed `/lib/` from `.gitignore` (legacy Python artifact not used by modern tools)
+
+The Python backend remains in `learn_fastapi_auth/` which clearly distinguishes it from the frontend code at root level.
