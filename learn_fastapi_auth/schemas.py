@@ -24,6 +24,26 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
 
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    is_oauth_user: bool = False
+
+    @classmethod
+    def model_validate(cls, obj, **kwargs):
+        """Override to compute is_oauth_user from firebase_uid."""
+        # Check if obj has firebase_uid attribute (from ORM model)
+        if hasattr(obj, "firebase_uid"):
+            # Create a dict copy and add is_oauth_user
+            data = {
+                "id": obj.id,
+                "email": obj.email,
+                "is_active": obj.is_active,
+                "is_superuser": obj.is_superuser,
+                "is_verified": obj.is_verified,
+                "created_at": getattr(obj, "created_at", None),
+                "updated_at": getattr(obj, "updated_at", None),
+                "is_oauth_user": obj.firebase_uid is not None,
+            }
+            return super().model_validate(data, **kwargs)
+        return super().model_validate(obj, **kwargs)
 
 
 class UserCreate(schemas.BaseUserCreate):

@@ -58,6 +58,9 @@ const ERROR_MESSAGES = {
     'FIREBASE_TOKEN_INVALID': 'Google sign in failed. Please try again.',
     'FIREBASE_EMAIL_REQUIRED': 'Email is required for sign in. Please allow email access.',
 
+    // OAuth user limitations
+    'OAUTH_USER_NO_PASSWORD': 'You signed in with Google, so there is no password to change. Your account security is managed by Google.',
+
     // Generic fallback
     'UNKNOWN_ERROR': 'An unexpected error occurred. Please try again.'
 };

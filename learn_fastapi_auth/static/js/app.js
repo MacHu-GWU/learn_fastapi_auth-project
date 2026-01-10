@@ -8,6 +8,7 @@
 // =============================================================================
 
 let currentUserData = '';
+let currentUserInfo = null;  // Stores user info including is_oauth_user
 
 // =============================================================================
 // Page Initialization
@@ -20,8 +21,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Load user data
-    await loadUserData();
+    // Load user info and user data in parallel
+    await Promise.all([
+        loadUserInfo(),
+        loadUserData()
+    ]);
 
     // Setup event listeners
     setupEventListeners();
@@ -30,6 +34,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 // =============================================================================
 // Data Loading
 // =============================================================================
+
+async function loadUserInfo() {
+    try {
+        const response = await apiRequest('/api/users/me');
+        if (!response) return; // Redirected due to auth error
+
+        if (response.ok) {
+            currentUserInfo = await response.json();
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
+        // Non-critical, continue without user info
+    }
+}
 
 async function loadUserData() {
     const dataDisplay = document.getElementById('data-display');
@@ -202,6 +220,12 @@ async function saveUserData() {
 // =============================================================================
 
 function openPasswordModal() {
+    // Check if user signed in via OAuth (Google)
+    if (currentUserInfo && currentUserInfo.is_oauth_user) {
+        showToast(getErrorMessage('OAUTH_USER_NO_PASSWORD'), 'info');
+        return;
+    }
+
     const modal = document.getElementById('password-modal-overlay');
     if (modal) modal.classList.add('show');
     // Clear form

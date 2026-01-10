@@ -16,6 +16,7 @@
 | 样式 | `learn_fastapi_auth/static/css/style.css` | 修改 |
 | JS | `learn_fastapi_auth/static/js/errors.js` | 修改 |
 | JS | `learn_fastapi_auth/static/js/auth.js` | 修改（Bug Fix） |
+| JS | `learn_fastapi_auth/static/js/app.js` | 修改（OAuth 用户检查） |
 
 ---
 
@@ -530,6 +531,123 @@ Cookie: refresh_token (HttpOnly)
 
 ---
 
+## 10. OAuth 用户修改密码限制
+
+### 问题背景
+
+OAuth 用户（通过 Google 登录）没有设置密码，后端会为他们生成随机密码。当这些用户在 `/app` 页面点击 "Change Password" 时，会遇到问题：
+- 他们不知道当前密码
+- 修改密码对他们没有意义（他们用 Google 登录）
+
+### 解决方案
+
+当 OAuth 用户点击 "Change Password" 时，显示友好提示而不是打开修改密码对话框。
+
+### 代码变更
+
+#### 1. 添加 `is_oauth_user` 字段到 UserRead Schema
+
+**文件**: `learn_fastapi_auth/schemas.py`
+
+```diff
+ class UserRead(schemas.BaseUser[uuid.UUID]):
+     """Schema for reading user data."""
+
+     created_at: Optional[datetime] = None
+     updated_at: Optional[datetime] = None
++    is_oauth_user: bool = False
++
++    @classmethod
++    def model_validate(cls, obj, **kwargs):
++        """Override to compute is_oauth_user from firebase_uid."""
++        if hasattr(obj, "firebase_uid"):
++            data = {
++                "id": obj.id,
++                "email": obj.email,
++                "is_active": obj.is_active,
++                "is_superuser": obj.is_superuser,
++                "is_verified": obj.is_verified,
++                "created_at": getattr(obj, "created_at", None),
++                "updated_at": getattr(obj, "updated_at", None),
++                "is_oauth_user": obj.firebase_uid is not None,
++            }
++            return super().model_validate(data, **kwargs)
++        return super().model_validate(obj, **kwargs)
+```
+
+#### 2. 添加错误消息
+
+**文件**: `learn_fastapi_auth/static/js/errors.js`
+
+```diff
+     // Firebase/OAuth errors
+     'FIREBASE_AUTH_DISABLED': '...',
+     'FIREBASE_TOKEN_INVALID': '...',
+     'FIREBASE_EMAIL_REQUIRED': '...',
+
++    // OAuth user limitations
++    'OAUTH_USER_NO_PASSWORD': 'You signed in with Google, so there is no password to change. Your account security is managed by Google.',
+```
+
+#### 3. 加载用户信息并检查 OAuth 状态
+
+**文件**: `learn_fastapi_auth/static/js/app.js`
+
+```diff
+ // Global State
+ let currentUserData = '';
++let currentUserInfo = null;
+
+ document.addEventListener('DOMContentLoaded', async () => {
+     if (!isLoggedIn()) {
+         window.location.href = '/signin?error=login_required';
+         return;
+     }
+
+-    await loadUserData();
++    // Load user info and user data in parallel
++    await Promise.all([
++        loadUserInfo(),
++        loadUserData()
++    ]);
+
+     setupEventListeners();
+ });
+
++async function loadUserInfo() {
++    try {
++        const response = await apiRequest('/api/users/me');
++        if (!response) return;
++        if (response.ok) {
++            currentUserInfo = await response.json();
++        }
++    } catch (error) {
++        console.error('Error loading user info:', error);
++    }
++}
+
+ function openPasswordModal() {
++    // Check if user signed in via OAuth (Google)
++    if (currentUserInfo && currentUserInfo.is_oauth_user) {
++        showToast(getErrorMessage('OAUTH_USER_NO_PASSWORD'), 'info');
++        return;
++    }
++
+     const modal = document.getElementById('password-modal-overlay');
+     if (modal) modal.classList.add('show');
+     // ...
+ }
+```
+
+### 用户体验
+
+| 用户类型 | 点击 "Change Password" 后 |
+|---------|--------------------------|
+| 密码用户 | 正常打开修改密码对话框 |
+| OAuth 用户 | 显示蓝色提示消息："You signed in with Google, so there is no password to change..." |
+
+---
+
 ## 文件变更总结
 
 | 文件 | 行数变化 | 说明 |
@@ -538,9 +656,10 @@ Cookie: refresh_token (HttpOnly)
 | `models.py` | +5 | 添加 firebase_uid 字段 |
 | `config.py` | +10 | 添加 Firebase 配置项 |
 | `auth/firebase.py` | +140 | 新建 Firebase 集成模块 |
-| `schemas.py` | +17 | 添加 Firebase 请求/响应 Schema |
+| `schemas.py` | +35 | 添加 Firebase Schema + is_oauth_user 字段 |
 | `app.py` | +80 | 添加 Firebase 登录路由 |
-| `signin.html` | +70 | 添加 Google 按钮和 Firebase SDK |
+| `signin.html` | +75 | 添加 Google 按钮、Firebase SDK 和改进的错误处理 |
 | `style.css` | +35 | 添加 Google 按钮样式 |
-| `errors.js` | +5 | 添加 Firebase 错误消息 |
+| `errors.js` | +8 | 添加 Firebase 和 OAuth 用户错误消息 |
 | `auth.js` | +4 | Bug fix: 修复按钮 HTML 恢复 |
+| `app.js` | +20 | 加载用户信息 + OAuth 用户密码检查 |
