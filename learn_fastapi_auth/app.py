@@ -47,6 +47,8 @@ from .ratelimit import (
 from .routers import pages_router
 from .schemas import (
     ChangePasswordRequest,
+    FirebaseLoginRequest,
+    FirebaseLoginResponse,
     MessageResponse,
     TokenRefreshResponse,
     UserCreate,
@@ -55,12 +57,22 @@ from .schemas import (
     UserRead,
     UserUpdate,
 )
+from .auth.firebase import (
+    init_firebase,
+    verify_firebase_token,
+    get_user_info_from_token,
+    FirebaseTokenInvalidError,
+    FirebaseNotInitializedError,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler - creates database tables on startup."""
     await create_db_and_tables()
+    # Initialize Firebase if enabled
+    if config.firebase_enabled:
+        init_firebase()
     yield
 
 
@@ -401,6 +413,137 @@ async def change_password(
     await session.commit()
 
     return MessageResponse(message="Password changed successfully")
+
+
+# =============================================================================
+# Firebase OAuth Login
+# =============================================================================
+@app.post("/api/auth/firebase", response_model=FirebaseLoginResponse, tags=["auth"])
+@limiter.limit(config.rate_limit_login)
+async def firebase_login(
+    request: Request,
+    data: FirebaseLoginRequest,
+    session: AsyncSession = Depends(get_async_session),
+):
+    """
+    Login or register using Firebase Authentication (Google, Apple, etc.).
+
+    This endpoint:
+    1. Verifies the Firebase ID token
+    2. Finds or creates a user based on Firebase UID or email
+    3. Returns our own JWT access token + sets refresh token cookie
+
+    The frontend should:
+    1. Use Firebase JS SDK to sign in with Google/Apple
+    2. Get the ID token from Firebase
+    3. Send the ID token to this endpoint
+    """
+    import secrets
+    from .auth.users import get_jwt_strategy
+
+    # Check if Firebase is enabled
+    if not config.firebase_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail="FIREBASE_AUTH_DISABLED",
+        )
+
+    # Verify Firebase token
+    try:
+        decoded_token = verify_firebase_token(data.id_token)
+        user_info = get_user_info_from_token(decoded_token)
+    except FirebaseNotInitializedError:
+        raise HTTPException(
+            status_code=503,
+            detail="FIREBASE_NOT_INITIALIZED",
+        )
+    except FirebaseTokenInvalidError as e:
+        raise HTTPException(
+            status_code=401,
+            detail="FIREBASE_TOKEN_INVALID",
+        )
+
+    firebase_uid = user_info["firebase_uid"]
+    email = user_info["email"]
+
+    if not email:
+        raise HTTPException(
+            status_code=400,
+            detail="FIREBASE_EMAIL_REQUIRED",
+        )
+
+    is_new_user = False
+
+    # Try to find existing user by firebase_uid
+    result = await session.execute(
+        select(User).where(User.firebase_uid == firebase_uid)
+    )
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        # Try to find by email (user may have registered with password first)
+        result = await session.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+
+        if user is not None:
+            # Link Firebase UID to existing user
+            user.firebase_uid = firebase_uid
+            session.add(user)
+            await session.commit()
+            print(f"Linked Firebase UID {firebase_uid} to existing user {user.id}")
+        else:
+            # Create new user
+            # Generate a random password (user won't use it, they'll use OAuth)
+            random_password = secrets.token_urlsafe(32)
+            from .auth.users import UserManager
+
+            # Hash the password
+            from fastapi_users.password import PasswordHelper
+
+            password_helper = PasswordHelper()
+            hashed_password = password_helper.hash(random_password)
+
+            user = User(
+                email=email,
+                hashed_password=hashed_password,
+                is_active=True,
+                is_verified=True,  # Firebase verified the email
+                is_superuser=False,
+                firebase_uid=firebase_uid,
+            )
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+
+            # Create UserData for the new user
+            user_data = UserData(user_id=user.id, text_value="")
+            session.add(user_data)
+            await session.commit()
+
+            is_new_user = True
+            print(f"Created new user {user.id} via Firebase ({user_info['provider']})")
+
+    # Generate our own JWT access token
+    jwt_strategy = get_jwt_strategy()
+    access_token = await jwt_strategy.write_token(user)
+
+    # Create refresh token
+    refresh_token_str = await create_refresh_token(
+        session, user.id, config.refresh_token_lifetime
+    )
+
+    # Build response with refresh token cookie
+    response = JSONResponse(
+        content={
+            "access_token": access_token,
+            "token_type": "bearer",
+            "is_new_user": is_new_user,
+        }
+    )
+    cookie_settings = get_refresh_token_cookie_settings(config.refresh_token_lifetime)
+    response.set_cookie(value=refresh_token_str, **cookie_settings)
+
+    return response
 
 
 # =============================================================================

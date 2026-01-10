@@ -147,7 +147,7 @@ async function apiRequest(url, options = {}) {
 
 /**
  * Set a button to loading state.
- * Stores original text in data attribute for later restoration.
+ * Stores original HTML in data attribute for later restoration.
  *
  * @param {HTMLButtonElement} button - The button element
  * @param {string} loadingText - Text to show while loading (default: 'Loading...')
@@ -155,9 +155,9 @@ async function apiRequest(url, options = {}) {
 function setButtonLoading(button, loadingText = 'Loading...') {
     if (!button) return;
 
-    // Store original text if not already stored
-    if (!button.dataset.originalText) {
-        button.dataset.originalText = button.textContent;
+    // Store original HTML if not already stored (supports buttons with icons)
+    if (!button.dataset.originalHtml) {
+        button.dataset.originalHtml = button.innerHTML;
     }
 
     button.disabled = true;
@@ -169,14 +169,15 @@ function setButtonLoading(button, loadingText = 'Loading...') {
  * Reset a button from loading state to its original state.
  *
  * @param {HTMLButtonElement} button - The button element
- * @param {string} text - Optional text to set (defaults to original text)
+ * @param {string} html - Optional HTML to set (defaults to original HTML)
  */
-function resetButton(button, text = null) {
+function resetButton(button, html = null) {
     if (!button) return;
 
     button.disabled = false;
     button.classList.remove('loading');
-    button.textContent = text || button.dataset.originalText || 'Submit';
+    // Restore original HTML (including icons) or use provided HTML
+    button.innerHTML = html || button.dataset.originalHtml || 'Submit';
 }
 
 /**

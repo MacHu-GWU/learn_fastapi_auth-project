@@ -86,6 +86,25 @@ class ChangePasswordRequest(BaseModel):
 
 
 # =============================================================================
+# Firebase Authentication Schemas
+# =============================================================================
+class FirebaseLoginRequest(BaseModel):
+    """Schema for Firebase login request."""
+
+    id_token: str = Field(..., description="Firebase ID token from frontend")
+
+
+class FirebaseLoginResponse(BaseModel):
+    """Schema for Firebase login response."""
+
+    access_token: str
+    token_type: str = "bearer"
+    is_new_user: bool = Field(
+        default=False, description="True if this is a newly created user"
+    )
+
+
+# =============================================================================
 # General Response Schemas
 # =============================================================================
 class MessageResponse(BaseModel):

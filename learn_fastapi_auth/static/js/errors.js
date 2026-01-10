@@ -52,6 +52,12 @@ const ERROR_MESSAGES = {
     'CSRF_TOKEN_MISSING': 'Security validation failed. Please refresh the page and try again.',
     'CSRF_TOKEN_INVALID': 'Security validation failed. Please refresh the page and try again.',
 
+    // Firebase/OAuth errors
+    'FIREBASE_AUTH_DISABLED': 'Google sign in is temporarily unavailable. Please use email and password.',
+    'FIREBASE_NOT_INITIALIZED': 'Google sign in is not properly configured. Please try again later.',
+    'FIREBASE_TOKEN_INVALID': 'Google sign in failed. Please try again.',
+    'FIREBASE_EMAIL_REQUIRED': 'Email is required for sign in. Please allow email access.',
+
     // Generic fallback
     'UNKNOWN_ERROR': 'An unexpected error occurred. Please try again.'
 };

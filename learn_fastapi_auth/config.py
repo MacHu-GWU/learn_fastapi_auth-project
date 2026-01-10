@@ -57,6 +57,10 @@ class Config:
     csrf_cookie_secure: bool = dataclasses.field()
     csrf_cookie_samesite: str = dataclasses.field()
 
+    # Firebase Authentication
+    firebase_service_account_path: str = dataclasses.field()
+    firebase_enabled: bool = dataclasses.field()
+
     @classmethod
     def from_env(cls) -> "Config":
         """Load configuration from environment variables."""
@@ -117,6 +121,12 @@ class Config:
             csrf_cookie_secure=os.environ.get("CSRF_COOKIE_SECURE", "False").lower()
             == "true",
             csrf_cookie_samesite=os.environ.get("CSRF_COOKIE_SAMESITE", "lax"),
+            # Firebase Authentication
+            firebase_service_account_path=os.environ.get(
+                "FIREBASE_SERVICE_ACCOUNT_PATH", "firebase-service-account.json"
+            ),
+            firebase_enabled=os.environ.get("FIREBASE_ENABLED", "True").lower()
+            == "true",
         )
 
 

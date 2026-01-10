@@ -44,6 +44,12 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # Firebase OAuth - stores Firebase UID for users who sign in via Google/Apple
+    # Nullable because password-based users don't have a Firebase UID
+    firebase_uid: Mapped[Optional[str]] = mapped_column(
+        String(128), unique=True, nullable=True, index=True
+    )
+
     # Relationships
     user_data: Mapped[Optional["UserData"]] = relationship(
         back_populates="user", cascade="all, delete-orphan", uselist=False
