@@ -14,7 +14,7 @@ from email.mime.text import MIMEText
 
 import aiosmtplib
 
-from learn_fastapi_auth.config import config
+from learn_fastapi_auth.one.api import one
 
 
 def get_verification_email_html(verification_url: str) -> str:
@@ -90,7 +90,7 @@ async def send_email(
     """
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
-    message["From"] = f"{config.smtp_from_name} <{config.smtp_from}>"
+    message["From"] = f"{one.env.smtp_from_name} <{one.env.smtp_from}>"
     message["To"] = to_email
 
     # Add plain text and HTML parts
@@ -106,11 +106,11 @@ async def send_email(
         # Connect and send
         await aiosmtplib.send(
             message,
-            hostname=config.smtp_host,
-            port=config.smtp_port,
-            username=config.smtp_user,
-            password=config.smtp_password,
-            start_tls=config.smtp_tls,
+            hostname=one.env.smtp_host,
+            port=one.env.smtp_port,
+            username=one.env.smtp_user,
+            password=one.env.smtp_password,
+            start_tls=one.env.smtp_tls,
             tls_context=context,
         )
         print(f"Email sent successfully to {to_email}")
@@ -131,7 +131,7 @@ async def send_verification_email(email: str, token: str) -> bool:
     Returns:
         True if email was sent successfully, False otherwise
     """
-    verification_url = f"{config.frontend_url}/auth/verify-email?token={token}"
+    verification_url = f"{one.env.frontend_url}/auth/verify-email?token={token}"
 
     return await send_email(
         to_email=email,
@@ -208,7 +208,7 @@ async def send_password_reset_email(email: str, token: str) -> bool:
     Returns:
         True if email was sent successfully, False otherwise
     """
-    reset_url = f"{config.frontend_url}/auth/reset-password?token={token}"
+    reset_url = f"{one.env.frontend_url}/auth/reset-password?token={token}"
 
     return await send_email(
         to_email=email,

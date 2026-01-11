@@ -21,7 +21,7 @@ from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from learn_fastapi_auth.config import config
+from learn_fastapi_auth.one.api import one
 from learn_fastapi_auth.database import get_async_session
 from learn_fastapi_auth.models import Token, User, UserData
 
@@ -38,10 +38,10 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     User manager with custom logic for registration and verification.
     """
 
-    reset_password_token_secret = config.secret_key
-    reset_password_token_lifetime_seconds = config.reset_password_token_lifetime
-    verification_token_secret = config.secret_key
-    verification_token_lifetime_seconds = config.verification_token_lifetime
+    reset_password_token_secret = one.env.secret_key
+    reset_password_token_lifetime_seconds = one.env.reset_password_token_lifetime
+    verification_token_secret = one.env.secret_key
+    verification_token_lifetime_seconds = one.env.verification_token_lifetime
 
     async def on_after_register(
         self,
@@ -132,8 +132,8 @@ bearer_transport = BearerTransport(tokenUrl="api/auth/login")
 def get_jwt_strategy() -> JWTStrategy:
     """Get JWT strategy with configured lifetime."""
     return JWTStrategy(
-        secret=config.secret_key,
-        lifetime_seconds=config.access_token_lifetime,
+        secret=one.env.secret_key,
+        lifetime_seconds=one.env.access_token_lifetime,
     )
 
 
@@ -166,7 +166,7 @@ async def store_token(
 ) -> Token:
     """Store a JWT token in the database."""
     expires_at = datetime.now(timezone.utc) + timedelta(
-        seconds=config.access_token_lifetime
+        seconds=one.env.access_token_lifetime
     )
     token = Token(token=token_str, user_id=user_id, expires_at=expires_at)
     session.add(token)

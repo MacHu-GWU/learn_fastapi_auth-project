@@ -15,7 +15,7 @@ import firebase_admin
 from firebase_admin import auth, credentials
 from firebase_admin.exceptions import FirebaseError
 
-from learn_fastapi_auth.config import config
+from learn_fastapi_auth.one.api import one
 
 
 # Firebase app instance (initialized lazily)
@@ -55,16 +55,16 @@ def init_firebase() -> bool:
     if _firebase_app is not None:
         return True
 
-    if not config.firebase_enabled:
+    if not one.env.firebase_enabled:
         print("Firebase authentication is disabled.")
         return False
 
     # Resolve service account path relative to project root
-    service_account_path = Path(config.firebase_service_account_path)
+    service_account_path = Path(one.env.firebase_service_account_path)
     if not service_account_path.is_absolute():
         # Try relative to project root (parent of learn_fastapi_auth package)
         project_root = Path(__file__).parent.parent.parent
-        service_account_path = project_root / config.firebase_service_account_path
+        service_account_path = project_root / one.env.firebase_service_account_path
 
     if not service_account_path.exists():
         print(f"Firebase service account file not found: {service_account_path}")
