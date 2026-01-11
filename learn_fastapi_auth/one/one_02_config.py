@@ -38,6 +38,7 @@ class OneConfigMixin:
         """
         Load configuration with runtime-aware strategy (local files, SSM, or environment variables).
         """
+        logger.info(f"Loading configuration, current runtime is {runtime.current_runtime}")
         if runtime.is_local_runtime_group:
             # ensure that the config-secret.json file exists
             # I recommend to put it at the ${HOME}/.projects/${project_name}/config-secret.json
