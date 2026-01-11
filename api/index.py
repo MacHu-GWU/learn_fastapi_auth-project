@@ -9,5 +9,5 @@ All /api/* routes will be handled by this handler.
 
 from learn_fastapi_auth.app import app
 
-# Vercel expects 'app' or 'handler' as the ASGI application
-handler = app
+# Vercel expects 'app' as the ASGI application
+# Do not use 'handler' - that's for WSGI/HTTP handlers
