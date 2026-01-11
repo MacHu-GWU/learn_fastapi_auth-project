@@ -4,9 +4,17 @@
 SQLAlchemy ORM models.
 
 Defines the database models for:
-- User: Authentication user (managed by fastapi-users)
-- UserData: User-specific text data
-- Token: JWT access tokens stored in database
+
+- :class:`User`: Authentication user (managed by fastapi-users)
+- :class:`UserData`: User-specific text data
+- :class:`Token`: JWT access tokens stored in database
+- :class:`RefreshToken`: Long-lived tokens for obtaining new access tokens
+
+Model Relationships:
+
+- :class:`User` ↔ :class`UserData`: One-to-One. Each user has exactly one UserData record for their profile content.
+- :class:`User` ↔ :class`Token`: One-to-Many. A user can have multiple active access tokens (multi-device login).
+- :class:`User` ↔ :class`RefreshToken`: One-to-Many. A user can have multiple refresh tokens for token rotation across devices.
 """
 
 from datetime import datetime
