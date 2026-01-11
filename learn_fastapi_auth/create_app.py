@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
-def create_app():
-    from .app import app
-    return app
+"""
+Application factory for external use.
+
+This module provides backward compatibility for code that imports
+create_app from this location.
+"""
+
+from .core import create_app
+
+__all__ = ["create_app"]
