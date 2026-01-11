@@ -11,8 +11,6 @@ from contextlib import asynccontextmanager
 from fastapi import Cookie, Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -30,8 +28,7 @@ from .auth.users import (
 from .one.api import one
 from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
-from .paths import dir_static, dir_templates
-from .csrf import get_csrf_token, setup_csrf_protection
+from .csrf import setup_csrf_protection
 from .refresh_token import (
     create_refresh_token,
     get_refresh_token_cookie_settings,
@@ -45,7 +42,6 @@ from .ratelimit import (
     rate_limit_exceeded_handler,
     setup_rate_limiting,
 )
-from .routers import pages_router
 from .schemas import (
     ChangePasswordRequest,
     FirebaseLoginRequest,
@@ -86,13 +82,31 @@ app = FastAPI(
 
 # CORS configuration for Next.js frontend
 # In development, Next.js runs on port 3000
-# In production, update CORS_ORIGINS environment variable
+# In production on Vercel, same-origin requests don't need CORS
+# But we add the Vercel domain for API testing from other tools
+import os
+
+cors_origins = [
+    "http://localhost:3000",  # Next.js dev server
+    "http://127.0.0.1:3000",
+]
+
+# Add production origins
+if os.environ.get("VERCEL"):
+    # On Vercel, add the production domain
+    cors_origins.extend([
+        "https://learn-fastapi-auth-project.vercel.app",
+        "https://*.vercel.app",  # Preview deployments
+    ])
+
+# Allow additional origins from environment variable
+extra_origins = os.environ.get("CORS_ORIGINS", "")
+if extra_origins:
+    cors_origins.extend([o.strip() for o in extra_origins.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Next.js dev server
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,  # Allow cookies for refresh token
     allow_methods=["*"],
     allow_headers=["*"],
@@ -226,18 +240,6 @@ async def add_refresh_token_on_login(request: Request, call_next):
     return response
 
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=str(dir_static)), name="static")
-
-# Jinja2 templates
-templates = Jinja2Templates(directory=str(dir_templates))
-
-# Add CSRF token function to Jinja2 globals for use in templates
-# Usage in templates: {{ get_csrf_token(request) }}
-templates.env.globals["get_csrf_token"] = get_csrf_token
-
-# Include page router (HTML pages)
-app.include_router(pages_router)
 
 
 # =============================================================================

@@ -7,8 +7,6 @@ Handles Firebase ID Token verification and user association for OAuth logins
 (Google, Apple, etc.).
 """
 
-import os
-from pathlib import Path
 from typing import Optional
 
 import firebase_admin
@@ -59,19 +57,8 @@ def init_firebase() -> bool:
         print("Firebase authentication is disabled.")
         return False
 
-    # Resolve service account path relative to project root
-    service_account_path = Path(one.env.firebase_service_account_path)
-    if not service_account_path.is_absolute():
-        # Try relative to project root (parent of learn_fastapi_auth package)
-        project_root = Path(__file__).parent.parent.parent
-        service_account_path = project_root / one.env.firebase_service_account_path
-
-    if not service_account_path.exists():
-        print(f"Firebase service account file not found: {service_account_path}")
-        return False
-
     try:
-        cred = credentials.Certificate(str(service_account_path))
+        cred = credentials.Certificate(one.env.firebase_service_account_cert)
         _firebase_app = firebase_admin.initialize_app(cred)
         print(f"Firebase initialized successfully for project: {cred.project_id}")
         return True

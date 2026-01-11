@@ -1,0 +1,23 @@
+{
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.12",
+      "excludeFiles": "{.next,.git,node_modules,tests,docs,tmp,htmlcov}/**",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    }
+  ],
+  "build": {
+    "env": {
+      "PYTHON_VERSION": "3.12",
+      "ENABLE_EXPERIMENTAL_COREPACK": "1"
+    }
+  },
+  "crons": []
+}

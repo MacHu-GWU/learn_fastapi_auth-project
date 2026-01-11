@@ -16,7 +16,6 @@ import os
 from functools import cached_property
 
 import which_runtime.api as which_runtime
-from which_runtime.impl import _check_user_env_var
 
 
 class Runtime(which_runtime.Runtime):

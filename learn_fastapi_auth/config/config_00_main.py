@@ -75,7 +75,7 @@ class Env(
     csrf_cookie_samesite: str | None = dataclasses.field(default=None)
 
     # Firebase Authentication
-    firebase_service_account_path: str | None = dataclasses.field(default=None)
+    firebase_service_account_cert: dict | None = dataclasses.field(default=None)
     firebase_enabled: bool | None = dataclasses.field(default=None)
 
     @property
