@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from esc_tpl_lbd.one.api import one
+from learn_fastapi_auth.one.api import one
 
 answer = input(
     "Are you sure to delete all the deployed resources? "
