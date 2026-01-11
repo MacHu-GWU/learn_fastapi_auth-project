@@ -9,8 +9,10 @@ middleware, and extensions.
 
 from fastapi import FastAPI
 
+from .._version import __version__
 from ..admin import setup_admin
 from ..routers import api_router
+
 from .lifespan import lifespan
 from .middleware import setup_all_middleware
 
@@ -31,7 +33,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="FastAPI User Authentication",
         description="A SaaS authentication service with email verification",
-        version="1.0.0",
+        version=__version__,
         lifespan=lifespan,
     )
 
