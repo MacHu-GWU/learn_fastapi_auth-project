@@ -579,7 +579,7 @@ async def verify_email_page(
     # The actual verification is handled by fastapi-users POST /api/auth/verify
     # This page should redirect to a frontend page that will call the API
     return RedirectResponse(
-        url=f"{one.env.frontend_url}/signin?verified=pending&token={token}",
+        url=f"{one.env.final_frontend_url}/signin?verified=pending&token={token}",
         status_code=status.HTTP_302_FOUND,
     )
 
@@ -598,7 +598,7 @@ async def reset_password_redirect(
     It redirects to the reset password page with the token.
     """
     return RedirectResponse(
-        url=f"{one.env.frontend_url}/reset-password?token={token}",
+        url=f"{one.env.final_frontend_url}/reset-password?token={token}",
         status_code=status.HTTP_302_FOUND,
     )
 

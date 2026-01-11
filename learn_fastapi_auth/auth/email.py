@@ -131,7 +131,7 @@ async def send_verification_email(email: str, token: str) -> bool:
     Returns:
         True if email was sent successfully, False otherwise
     """
-    verification_url = f"{one.env.frontend_url}/auth/verify-email?token={token}"
+    verification_url = f"{one.env.final_frontend_url}/auth/verify-email?token={token}"
 
     return await send_email(
         to_email=email,
@@ -208,7 +208,7 @@ async def send_password_reset_email(email: str, token: str) -> bool:
     Returns:
         True if email was sent successfully, False otherwise
     """
-    reset_url = f"{one.env.frontend_url}/auth/reset-password?token={token}"
+    reset_url = f"{one.env.final_frontend_url}/auth/reset-password?token={token}"
 
     return await send_email(
         to_email=email,

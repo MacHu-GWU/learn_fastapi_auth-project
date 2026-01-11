@@ -15,7 +15,7 @@
         "smtp_port": 587,
         "smtp_tls":  true,
         "smtp_from_name":  "FastAPI Auth",
-        "frontend_url": "http://localhost:8000",
+        "frontend_url": "https://learn-fastapi-auth-project.vercel.app",
         "verification_token_lifetime":  900,
         "reset_password_token_lifetime": 900,
         "access_token_lifetime":  3600,

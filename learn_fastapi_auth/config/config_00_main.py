@@ -19,11 +19,13 @@ from ..env import EnvNameEnum, detect_current_env
 # You may have a long list of config field definition
 # put them in different module and use Mixin class
 from .config_01_db import DbMixin
+from .config_02_webapp import WebAppMixin
 
 
 class Env(
     aws_config.BaseEnv,
     DbMixin,
+    WebAppMixin,
 ):
     """
     Environment-specific configuration container with Lambda function integration.
