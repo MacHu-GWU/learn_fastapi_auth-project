@@ -12,13 +12,14 @@ try:
     from pywf_internal_proprietary.api import PyWf
 except ImportError:  # pragma: no cover
     pass
+
 from ..runtime import runtime
 from ..paths import path_enum
 
 from .one_01_bsm import OneBsmMixin
 from .one_02_config import OneConfigMixin
-from .one_03_devops import OneDevOpsMixin
-from .one_04_quick_links import OneQuickLinksMixin
+from .one_05_devops import OneDevOpsMixin
+from .one_06_quick_links import OneQuickLinksMixin
 
 class One(
     OneBsmMixin,
