@@ -22,6 +22,7 @@ from learn_fastapi_auth.refresh_token import (
     cleanup_expired_tokens,
     get_refresh_token_cookie_settings,
 )
+from learn_fastapi_auth.one.api import one
 
 
 class TestGenerateRefreshToken:
@@ -70,7 +71,6 @@ class TestCreateRefreshToken:
     @pytest.mark.asyncio
     async def test_creates_token_with_default_lifetime(self):
         """Test that function creates token with default lifetime when not specified."""
-        from learn_fastapi_auth.config import config
         from learn_fastapi_auth.models import RefreshToken
 
         mock_session = AsyncMock()
@@ -85,7 +85,7 @@ class TestCreateRefreshToken:
         # Verify it's a RefreshToken and has correct lifetime
         assert isinstance(refresh_token, RefreshToken)
         expected_expires = datetime.now(timezone.utc) + timedelta(
-            seconds=config.refresh_token_lifetime
+            seconds=one.env.refresh_token_lifetime
         )
         # Allow 5 seconds tolerance for test execution time
         assert abs((refresh_token.expires_at - expected_expires).total_seconds()) < 5
@@ -114,7 +114,6 @@ class TestCreateRefreshToken:
     @pytest.mark.asyncio
     async def test_remember_me_token_longer_than_default(self):
         """Test that Remember Me token has longer lifetime than default."""
-        from learn_fastapi_auth.config import config
         from learn_fastapi_auth.models import RefreshToken
 
         mock_session = AsyncMock()
@@ -130,7 +129,7 @@ class TestCreateRefreshToken:
         # Create remember_me token
         await create_refresh_token(
             mock_session, user_id,
-            lifetime_seconds=config.remember_me_refresh_token_lifetime
+            lifetime_seconds=one.env.remember_me_refresh_token_lifetime
         )
         remember_me_token = mock_session.add.call_args[0][0]
 
@@ -296,10 +295,8 @@ class TestGetRefreshTokenCookieSettings:
 
     def test_default_max_age_uses_config(self):
         """Test that default max_age uses config.refresh_token_lifetime."""
-        from learn_fastapi_auth.config import config
-
         settings = get_refresh_token_cookie_settings()
-        assert settings["max_age"] == config.refresh_token_lifetime
+        assert settings["max_age"] == one.env.refresh_token_lifetime
 
     def test_custom_lifetime_sets_max_age(self):
         """Test that custom lifetime parameter sets max_age correctly."""
@@ -310,12 +307,10 @@ class TestGetRefreshTokenCookieSettings:
 
     def test_remember_me_lifetime_longer_than_default(self):
         """Test that Remember Me lifetime is longer than default."""
-        from learn_fastapi_auth.config import config
-
         default_settings = get_refresh_token_cookie_settings()
         remember_me_settings = get_refresh_token_cookie_settings(
-            lifetime_seconds=config.remember_me_refresh_token_lifetime
+            lifetime_seconds=one.env.remember_me_refresh_token_lifetime
         )
 
         assert remember_me_settings["max_age"] > default_settings["max_age"]
-        assert remember_me_settings["max_age"] == config.remember_me_refresh_token_lifetime
+        assert remember_me_settings["max_age"] == one.env.remember_me_refresh_token_lifetime
