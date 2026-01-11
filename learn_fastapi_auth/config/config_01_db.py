@@ -19,8 +19,10 @@ class DbMixin:
         if runtime.is_local_runtime_group:
             return f"sqlite+aiosqlite:///{path_enum.dir_project_root}/data.db"
         else:
+            # Note: asyncpg uses 'ssl' instead of 'sslmode' (libpq style)
+            # and doesn't support 'channel_binding'
             return (
                 "postgresql+asyncpg://"
                 f"{self.db_user}:{self.db_pass}@{self.db_host}/{self.db_name}"
-                f"?sslmode=require&channel_binding=require"
+                f"?ssl=require"
             )
