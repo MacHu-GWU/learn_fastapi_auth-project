@@ -26,7 +26,6 @@ from .auth.users import (
     get_user_manager,
 )
 from .one.api import one
-from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
 from .csrf import setup_csrf_protection
 from .refresh_token import (
@@ -66,7 +65,7 @@ from .auth.firebase import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler - creates database tables on startup."""
-    await create_db_and_tables()
+    await one.create_db_and_tables()
     # Initialize Firebase if enabled
     if one.env.firebase_enabled:
         init_firebase()
@@ -199,7 +198,6 @@ async def add_refresh_token_on_login(request: Request, call_next):
 
                 if user_id:
                     # Create refresh token and store in database
-                    from .database import async_session_maker
                     import uuid
 
                     # Determine token lifetime based on remember_me
@@ -209,7 +207,7 @@ async def add_refresh_token_on_login(request: Request, call_next):
                         else one.env.refresh_token_lifetime
                     )
 
-                    async with async_session_maker() as session:
+                    async with one.async_session_maker() as session:
                         refresh_token_str = await create_refresh_token(
                             session, uuid.UUID(user_id), token_lifetime
                         )
@@ -289,7 +287,7 @@ app.include_router(
 async def logout(
     request: Request,
     user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """
     Logout user by revoking their refresh token.
@@ -318,7 +316,7 @@ async def logout(
 @limiter.limit(one.env.rate_limit_default)
 async def refresh_access_token(
     request: Request,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """
     Get a new access token using the refresh token.
@@ -372,7 +370,7 @@ async def refresh_access_token(
 async def logout_all_devices(
     request: Request,
     user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """
     Logout from all devices by revoking all refresh tokens.
@@ -440,7 +438,7 @@ async def change_password(
 async def firebase_login(
     request: Request,
     data: FirebaseLoginRequest,
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """
     Login or register using Firebase Authentication (Google, Apple, etc.).
@@ -611,7 +609,7 @@ async def reset_password_redirect(
 async def get_user_data(
     request: Request,
     user: User = Depends(current_verified_user),
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """Get current user's data."""
     result = await session.execute(select(UserData).where(UserData.user_id == user.id))
@@ -633,7 +631,7 @@ async def update_user_data(
     request: Request,
     data: UserDataUpdate,
     user: User = Depends(current_verified_user),
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """Update current user's data."""
     result = await session.execute(select(UserData).where(UserData.user_id == user.id))

@@ -22,12 +22,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from learn_fastapi_auth.one.api import one
-from learn_fastapi_auth.database import get_async_session
 from learn_fastapi_auth.models import Token, User, UserData
 
 
 async def get_user_db(
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(one.get_async_session),
 ):
     """Dependency for getting the user database."""
     yield SQLAlchemyUserDatabase(session, User)

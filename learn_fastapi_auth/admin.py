@@ -15,7 +15,7 @@ from starlette.responses import RedirectResponse
 from sqlalchemy import select
 from fastapi_users.password import PasswordHelper
 
-from learn_fastapi_auth.database import engine, async_session_maker
+# from learn_fastapi_auth.database import engine, async_session_maker
 from learn_fastapi_auth.models import User
 from learn_fastapi_auth.one.api import one
 
@@ -42,7 +42,7 @@ class AdminAuth(AuthenticationBackend):
             return False
 
         # Query user from database
-        async with async_session_maker() as session:
+        async with one.async_session_maker() as session:
             result = await session.execute(
                 select(User).where(User.email == email)
             )
@@ -89,7 +89,7 @@ class AdminAuth(AuthenticationBackend):
             return RedirectResponse(request.url_for("admin:login"), status_code=302)
 
         # Verify user still exists and is still a superuser
-        async with async_session_maker() as session:
+        async with one.async_session_maker() as session:
             result = await session.execute(
                 select(User).where(User.id == admin_user_id)
             )
@@ -190,7 +190,7 @@ def setup_admin(app):
 
     admin = Admin(
         app,
-        engine,
+        one.async_engine,
         authentication_backend=authentication_backend,
         title="FastAPI Auth Admin",
     )

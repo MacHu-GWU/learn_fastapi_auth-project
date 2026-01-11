@@ -18,12 +18,14 @@ from ..paths import path_enum
 
 from .one_01_bsm import OneBsmMixin
 from .one_02_config import OneConfigMixin
+from .one_03_db import OneDbMixin
 from .one_05_devops import OneDevOpsMixin
 from .one_06_quick_links import OneQuickLinksMixin
 
 class One(
     OneBsmMixin,
     OneConfigMixin,
+    OneDbMixin,
     OneDevOpsMixin,
     OneQuickLinksMixin,
 ):  # pragma: no cover

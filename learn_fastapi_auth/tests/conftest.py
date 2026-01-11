@@ -4,7 +4,8 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from learn_fastapi_auth.database import Base, get_async_session
+from learn_fastapi_auth.database import Base
+from learn_fastapi_auth.one.api import one
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
@@ -42,7 +43,7 @@ async def client(test_engine):
         async with async_session_maker() as session:
             yield session
 
-    app.dependency_overrides[get_async_session] = override_get_async_session
+    app.dependency_overrides[one.get_async_session] = override_get_async_session
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
