@@ -17,6 +17,14 @@ export function Navbar() {
     setMounted(true);
     setLoggedIn(isLoggedIn());
     setEmail(getUserEmail());
+
+    const handleAuthChange = () => {
+      setLoggedIn(isLoggedIn());
+      setEmail(getUserEmail());
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
   }, []);
 
   const handleLogout = async () => {

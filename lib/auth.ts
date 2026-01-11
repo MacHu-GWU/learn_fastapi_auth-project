@@ -18,6 +18,7 @@ export function getToken(): string | null {
 export function setToken(token: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(AUTH_TOKEN_KEY, token);
+  window.dispatchEvent(new Event('auth-change'));
 }
 
 export function removeToken(): void {
