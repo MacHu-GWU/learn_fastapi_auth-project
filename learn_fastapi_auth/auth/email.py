@@ -15,7 +15,8 @@ from pathlib import Path
 
 import aiosmtplib
 
-from learn_fastapi_auth.one.api import one
+from ..logger import logger
+from ..one.api import one
 
 # Template directory
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
@@ -118,10 +119,10 @@ async def send_email(
             start_tls=one.env.smtp_tls,
             tls_context=context,
         )
-        print(f"Email sent successfully to {to_email}")
+        logger.info(f"Email sent successfully to {to_email}")
         return True
     except Exception as e:
-        print(f"Failed to send email to {to_email}: {e}")
+        logger.error(f"Failed to send email to {to_email}: {e}")
         return False
 
 
