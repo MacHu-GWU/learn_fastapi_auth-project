@@ -50,6 +50,10 @@ class Runtime(which_runtime.Runtime):
         return is_local
 
     @cached_property
+    def is_app_runtime_group(self) -> bool:
+        return self.is_vercel
+
+    @cached_property
     def current_runtime(self) -> str:  # pragma: no cover
         current_runtime = super().current_runtime
         if current_runtime == which_runtime.RunTimeEnum.unknown:
