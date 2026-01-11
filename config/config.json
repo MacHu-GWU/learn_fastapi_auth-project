@@ -1,0 +1,53 @@
+{
+    "_defaults": {
+        // ---------------------------------------------------------------------
+        // shared by all environments
+        // ---------------------------------------------------------------------
+        "*.project_name": "learn_fastapi_auth",
+        "*.s3uri_artifacts": "s3://esc-app-devops-us-east-1-artifacts/projects/learn_fastapi_auth/"
+    },
+    "devops": {
+        "s3uri_data": "s3://esc-app-devops-us-east-1-data/projects/learn_fastapi_auth/"
+    },
+    "dev": {
+        "s3uri_data": "s3://esc-app-dev-us-east-1-data/projects/learn_fastapi_auth/",
+        "smtp_host":  "smtp.gmail.com",
+        "smtp_port": 587,
+        "smtp_tls":  true,
+        "smtp_from_name":  "FastAPI Auth",
+        "frontend_url": "http://localhost:8000",
+        "verification_token_lifetime":  900,
+        "reset_password_token_lifetime": 900,
+        "access_token_lifetime":  3600,
+        "refresh_token_lifetime": 604800, // 7 days
+        "remember_me_refresh_token_lifetime":  2592000, // 30 days
+        "refresh_token_cookie_name": "refresh_token",
+        "refresh_token_cookie_secure":  false,
+        "refresh_token_cookie_samesite": "lax",
+        "rate_limit_login":  "5/minute",
+        "rate_limit_register": "10/hour",
+        "rate_limit_forgot_password":  "3/hour",
+        "rate_limit_default": "60/minute",
+        "csrf_cookie_name":  "csrftoken",
+        "csrf_cookie_secure": false,
+        "csrf_cookie_samesite":  "lax",
+        "firebase_service_account_path": "firebase-service-account.json",
+        "firebase_enabled":  true
+    },
+    "tst": {
+        "username": "tst.user",
+        "s3uri_data": "s3://esc-app-test-us-east-1-data/projects/learn_fastapi_auth/",
+        "lbd_func_mappings": {
+            "hello": {},
+            "s3sync": {}
+        }
+    },
+    "prd": {
+        "username": "prd.user",
+        "s3uri_data": "s3://esc-app-prod-us-east-1-data/projects/learn_fastapi_auth/",
+        "lbd_func_mappings": {
+            "hello": {},
+            "s3sync": {}
+        }
+    }
+}
