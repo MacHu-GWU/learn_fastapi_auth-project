@@ -231,3 +231,7 @@ class OneConfigMixin:
         delete_env_parameter(env_name=EnvNameEnum.dev.value)
         delete_env_parameter(env_name=EnvNameEnum.tst.value)
         delete_env_parameter(env_name=EnvNameEnum.prd.value)
+
+    @cached_property
+    def firebase_service_account_cert(self: "One") -> dict:
+        return self.env.get_firebase_cert(bsm=self.bsm)

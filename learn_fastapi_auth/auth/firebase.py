@@ -58,7 +58,7 @@ def init_firebase() -> bool:
         return False
 
     try:
-        cred = credentials.Certificate(one.env.firebase_service_account_cert)
+        cred = credentials.Certificate(one.firebase_service_account_cert)
         _firebase_app = firebase_admin.initialize_app(cred)
         print(f"Firebase initialized successfully for project: {cred.project_id}")
         return True

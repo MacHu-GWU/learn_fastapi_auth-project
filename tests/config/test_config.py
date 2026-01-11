@@ -8,9 +8,6 @@ def test():
 
     env = config.env
 
-    _ = env.s3dir_source
-    _ = env.s3dir_target
-
     _ = env.db_host
     _ = env.db_user
     _ = env.db_pass
@@ -39,10 +36,12 @@ def test():
     _ = env.csrf_cookie_name
     _ = env.csrf_cookie_secure
     _ = env.csrf_cookie_samesite
-    _ = env.firebase_service_account_path
     _ = env.firebase_enabled
 
     _ = env.async_db_url
+    _ = env.final_front_end_url
+    _ = env.firebase_cert_parameter_name
+    _ = env.get_firebase_cert(bsm=one.bsm)
 
 
 if __name__ == "__main__":

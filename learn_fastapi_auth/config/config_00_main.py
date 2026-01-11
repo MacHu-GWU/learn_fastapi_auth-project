@@ -12,7 +12,6 @@ import dataclasses
 from functools import cached_property
 
 import aws_config.api as aws_config
-from s3pathlib import S3Path
 
 from ..env import EnvNameEnum, detect_current_env
 
@@ -34,6 +33,7 @@ class Env(
     using mixin classes to provide a comprehensive configuration interface for each
     deployment environment while maintaining clear separation of concerns.
     """
+
     # Database
     db_host: str | None = dataclasses.field(default=None)
     db_user: str | None = dataclasses.field(default=None)
@@ -77,16 +77,7 @@ class Env(
     csrf_cookie_samesite: str | None = dataclasses.field(default=None)
 
     # Firebase Authentication
-    firebase_service_account_cert: dict | None = dataclasses.field(default=None)
     firebase_enabled: bool | None = dataclasses.field(default=None)
-
-    @property
-    def s3dir_source(self: "Env") -> S3Path:
-        return self.s3dir_env_data.joinpath("source").to_dir()
-
-    @property
-    def s3dir_target(self: "Env") -> S3Path:
-        return self.s3dir_env_data.joinpath("target").to_dir()
 
 
 @dataclasses.dataclass
@@ -100,6 +91,7 @@ class Config(
     configurations with automatic environment detection and cached property access
     for efficient configuration loading and cross-environment operations.
     """
+
     @classmethod
     def get_current_env(cls) -> str:  # pragma: no cover
         return detect_current_env()

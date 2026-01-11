@@ -31,23 +31,12 @@
         "csrf_cookie_name":  "csrftoken",
         "csrf_cookie_secure": false,
         "csrf_cookie_samesite":  "lax",
-        "firebase_service_account_path": "firebase-service-account.json",
         "firebase_enabled":  true
     },
     "tst": {
-        "username": "tst.user",
-        "s3uri_data": "s3://esc-app-test-us-east-1-data/projects/learn_fastapi_auth/",
-        "lbd_func_mappings": {
-            "hello": {},
-            "s3sync": {}
-        }
+        "s3uri_data": "s3://esc-app-test-us-east-1-data/projects/learn_fastapi_auth/"
     },
     "prd": {
-        "username": "prd.user",
-        "s3uri_data": "s3://esc-app-prod-us-east-1-data/projects/learn_fastapi_auth/",
-        "lbd_func_mappings": {
-            "hello": {},
-            "s3sync": {}
-        }
+        "s3uri_data": "s3://esc-app-prod-us-east-1-data/projects/learn_fastapi_auth/"
     }
 }
