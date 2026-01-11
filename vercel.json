@@ -1,7 +1,6 @@
 {
   "functions": {
     "api/index.py": {
-      "runtime": "python3.12",
       "excludeFiles": "{.next,.git,node_modules,tests,docs,tmp,htmlcov}/**",
       "memory": 1024,
       "maxDuration": 30
