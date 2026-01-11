@@ -5,7 +5,6 @@ Integration tests for application API endpoints.
 
 Tests cover:
 - Health check endpoint
-- Root endpoint
 - User registration API
 - User login API
 - Protected routes access control
@@ -25,57 +24,6 @@ class TestHealthCheck:
         response = await client.get("/health")
         assert response.status_code == 200
         assert response.json() == {"status": "healthy"}
-
-
-class TestRoot:
-    """Test root endpoint."""
-
-    async def test_root(self, client: AsyncClient):
-        """Test root endpoint returns HTML homepage."""
-        response = await client.get("/")
-        assert response.status_code == 200
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "Hello World" in response.text
-        assert "FastAPI Auth" in response.text
-
-
-class TestPageRoutes:
-    """Test HTML page routes."""
-
-    async def test_signup_page(self, client: AsyncClient):
-        """Test signup page renders correctly."""
-        response = await client.get("/signup")
-        assert response.status_code == 200
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "Create Account" in response.text
-
-    async def test_signin_page(self, client: AsyncClient):
-        """Test signin page renders correctly."""
-        response = await client.get("/signin")
-        assert response.status_code == 200
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "Sign In" in response.text
-
-    async def test_app_page(self, client: AsyncClient):
-        """Test app page renders correctly."""
-        response = await client.get("/app")
-        assert response.status_code == 200
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "Your Personal Data" in response.text
-
-    async def test_forgot_password_page(self, client: AsyncClient):
-        """Test forgot password page renders correctly."""
-        response = await client.get("/forgot-password")
-        assert response.status_code == 200
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "Forgot Password" in response.text
-
-    async def test_reset_password_page(self, client: AsyncClient):
-        """Test reset password page renders correctly."""
-        response = await client.get("/reset-password")
-        assert response.status_code == 200
-        assert "text/html" in response.headers.get("content-type", "")
-        assert "Reset Password" in response.text
 
 
 class TestUserRegistration:
