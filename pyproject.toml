@@ -7,7 +7,7 @@
 name = "learn_fastapi_auth"
 # Increment version before each release - follow `semantic versioning <https://semver.org/>`_
 version = "0.1.1"
-description = ""
+description = "Next.js and FastAPI based authentication system with email verification, JWT, refresh tokens, CSRF protection, rate limiting, and Firebase integration."
 authors = [
     { name = "Sanhe Hu", email = "husanhe@gmail.com" },
 ]
@@ -40,9 +40,21 @@ dependencies = [
     "func-args>=1.0.1,<2.0.0", # inspect function/method arguments
     "soft_deps>=0.1.1,<1.0.0", # Lazy import optional dependencies
     "boltons>=25.0.0,<26.0.0", # Utility functions for Python
+    # AWS SDK
+    "boto3>=1.42.0,<2.0.0", # Official AWS Python SDK
+    "boto-session-manager>=1.7.2,<2.0.0",
+    "aws_console_url>=1.4.1,<2.0.0", # Generate AWS Console URL for resources
+    "s3pathlib>=2.3.6,<3.0.0", # S3 path manipulation
+    # DevOps utils
+    "which_env>=0.2.1,<1.0.0", # Multiple environment management
+    "which_runtime>=0.1.1,<1.0.0", # Multiple Runtime management
+    "which_bsm>=0.1.1,<1.0.0", # Multiple BSM management
+    # Config management
+    "aws_config>=0.1.5,<1.0.0", # Type-safe hierarchical configuration management system for AWS projects
     # Database & ORM
     "SQLAlchemy>=2.0.44,<3.0.0",
-    "aiosqlite>=0.20.0,<1.0.0",  # Async SQLite support
+    "aiosqlite>=0.20.0,<1.0.0",  # Async SQLite support (local dev)
+    "asyncpg>=0.30.0,<1.0.0",  # Async PostgreSQL support (production)
     # Web framework
     "fastapi>=0.123.10,<1.0.0",
     "fastapi-users[sqlalchemy]>=15.0.1,<16.0.0",  # User authentication

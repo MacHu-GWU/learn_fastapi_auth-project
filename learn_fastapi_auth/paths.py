@@ -61,6 +61,12 @@ class PathEnum:
     dir_build = dir_project_root / "build"
     dir_dist = dir_project_root / "dist"
 
+    # Configuration
+    dir_config = dir_project_root / "config"
+    path_config_json = dir_config / "config.json"
+    path_secret_config_json = dir_config / "secret-config.json"
+
+
 path_enum = PathEnum()
 """
 Single entry point for all project paths with absolute path references.
