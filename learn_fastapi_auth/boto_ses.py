@@ -88,7 +88,7 @@ class BotoSesEnum(BaseBotoSesEnum):
         """
         from s3pathlib import context
 
-        if runtime.is_aws_lambda:  # pragma: no cover
+        if runtime.is_vercel:  # pragma: no cover
             bsm = BotoSesManager(region_name=os.environ["AWS_DEFAULT_REGION"])
         else:
             current_env = detect_current_env()
