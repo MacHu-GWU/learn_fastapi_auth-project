@@ -18,6 +18,9 @@ export function getToken(): string | null {
 export function setToken(token: string): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(AUTH_TOKEN_KEY, token);
+  // Bug fix: Dispatch custom event so Navbar can update immediately after login.
+  // Without this, Navbar only checks auth state on mount, so after OAuth login
+  // and redirect, it would still show "Sign In" until page refresh.
   window.dispatchEvent(new Event('auth-change'));
 }
 

@@ -18,6 +18,9 @@ export function Navbar() {
     setLoggedIn(isLoggedIn());
     setEmail(getUserEmail());
 
+    // Bug fix: Listen for auth-change events to update Navbar immediately after login.
+    // setToken() dispatches this event, allowing Navbar to re-check auth state
+    // without requiring a page refresh or re-mount.
     const handleAuthChange = () => {
       setLoggedIn(isLoggedIn());
       setEmail(getUserEmail());

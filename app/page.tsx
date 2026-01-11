@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react';
 import { isLoggedIn } from '@/lib/auth';
 
 export default function Home() {
+  // Bug fix: Check login state to show appropriate CTA buttons.
+  // Without this, logged-in users would see "Create Account / Sign In" buttons,
+  // which is confusing since they're already authenticated.
   const [loggedIn, setLoggedIn] = useState(false);
+  // `mounted` prevents hydration mismatch: server renders without localStorage access,
+  // so we only show auth-dependent UI after client-side mount.
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -21,6 +26,8 @@ export default function Home() {
       <p className="text-lg text-gray-600 mb-8">
         Welcome to FastAPI User Authentication Project
       </p>
+      {/* Only render buttons after mount to avoid hydration mismatch,
+          then show different CTAs based on login state */}
       {mounted && (
         <div className="flex gap-4">
           {loggedIn ? (
