@@ -10,7 +10,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from ..auth.firebase import init_firebase
 from ..one.api import one
 
 
@@ -30,8 +29,7 @@ async def lifespan(app: FastAPI):
     await one.create_db_and_tables()
 
     # Initialize Firebase if enabled
-    if one.env.firebase_enabled:
-        init_firebase()
+    one.init_firebase()
 
     yield
 

@@ -280,8 +280,8 @@ async def firebase_login(
             detail="FIREBASE_TOKEN_INVALID",
         )
 
-    firebase_uid = user_info["firebase_uid"]
-    email = user_info["email"]
+    firebase_uid = user_info.firebase_uid
+    email = user_info.email
 
     if not email:
         raise HTTPException(
@@ -333,7 +333,7 @@ async def firebase_login(
             await session.commit()
 
             is_new_user = True
-            print(f"Created new user {user.id} via Firebase ({user_info['provider']})")
+            print(f"Created new user {user.id} via Firebase ({user_info.provider})")
 
     # Generate our own JWT access token
     jwt_strategy = get_jwt_strategy()
