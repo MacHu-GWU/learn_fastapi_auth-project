@@ -15,9 +15,9 @@ from starlette.responses import RedirectResponse
 from sqlalchemy import select
 from fastapi_users.password import PasswordHelper
 
-from learn_fastapi_auth.config import config
 from learn_fastapi_auth.database import engine, async_session_maker
 from learn_fastapi_auth.models import User
+from learn_fastapi_auth.one.api import one
 
 
 class AdminAuth(AuthenticationBackend):
@@ -186,7 +186,7 @@ def setup_admin(app):
     Args:
         app: FastAPI application instance
     """
-    authentication_backend = AdminAuth(secret_key=config.secret_key)
+    authentication_backend = AdminAuth(secret_key=one.env.secret_key)
 
     admin = Admin(
         app,

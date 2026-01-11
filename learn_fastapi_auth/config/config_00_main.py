@@ -18,11 +18,12 @@ from ..env import EnvNameEnum, detect_current_env
 
 # You may have a long list of config field definition
 # put them in different module and use Mixin class
-# from .config_01_xyz import XYZ
+from .config_01_db import DbMixin
 
 
 class Env(
     aws_config.BaseEnv,
+    DbMixin,
 ):
     """
     Environment-specific configuration container with Lambda function integration.
@@ -31,29 +32,11 @@ class Env(
     using mixin classes to provide a comprehensive configuration interface for each
     deployment environment while maintaining clear separation of concerns.
     """
-    @property
-    def s3dir_source(self: "Env") -> S3Path:
-        return self.s3dir_env_data.joinpath("source").to_dir()
-
-    @property
-    def s3dir_target(self: "Env") -> S3Path:
-        return self.s3dir_env_data.joinpath("target").to_dir()
-
-
-@dataclasses.dataclass
-class Config(
-    aws_config.BaseConfig[Env, EnvNameEnum],
-):
-    """
-    Main configuration class providing environment-aware configuration management.
-
-    Extends the base configuration to provide type-safe access to environment-specific
-    configurations with automatic environment detection and cached property access
-    for efficient configuration loading and cross-environment operations.
-    """
-
     # Database
-    database_url: str | None = dataclasses.field(default=None)
+    db_host: str | None = dataclasses.field(default=None)
+    db_user: str | None = dataclasses.field(default=None)
+    db_pass: str | None = dataclasses.field(default=None)
+    db_name: str | None = dataclasses.field(default=None)
 
     # JWT
     secret_key: str | None = dataclasses.field(default=None)
@@ -95,6 +78,26 @@ class Config(
     firebase_service_account_path: str | None = dataclasses.field(default=None)
     firebase_enabled: bool | None = dataclasses.field(default=None)
 
+    @property
+    def s3dir_source(self: "Env") -> S3Path:
+        return self.s3dir_env_data.joinpath("source").to_dir()
+
+    @property
+    def s3dir_target(self: "Env") -> S3Path:
+        return self.s3dir_env_data.joinpath("target").to_dir()
+
+
+@dataclasses.dataclass
+class Config(
+    aws_config.BaseConfig[Env, EnvNameEnum],
+):
+    """
+    Main configuration class providing environment-aware configuration management.
+
+    Extends the base configuration to provide type-safe access to environment-specific
+    configurations with automatic environment detection and cached property access
+    for efficient configuration loading and cross-environment operations.
+    """
     @classmethod
     def get_current_env(cls) -> str:  # pragma: no cover
         return detect_current_env()

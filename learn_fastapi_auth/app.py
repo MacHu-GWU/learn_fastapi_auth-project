@@ -27,7 +27,7 @@ from .auth.users import (
     fastapi_users,
     get_user_manager,
 )
-from .config import config
+from .one.api import one
 from .database import create_db_and_tables, get_async_session
 from .models import User, UserData
 from .paths import dir_static, dir_templates
@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler - creates database tables on startup."""
     await create_db_and_tables()
     # Initialize Firebase if enabled
-    if config.firebase_enabled:
+    if one.env.firebase_enabled:
         init_firebase()
     yield
 
@@ -104,18 +104,18 @@ app.add_middleware(SlowAPIMiddleware)
 
 # Add path-based rate limiting for fastapi-users routes
 # This middleware must be added BEFORE SlowAPIMiddleware takes effect
-# Rate limits are configured in config.py and can be overridden via environment variables
+# Rate limits are configured in one.env.py and can be overridden via environment variables
 path_rate_limits = {
-    "/api/auth/login": config.rate_limit_login,  # Login: 5/minute (prevent brute force)
-    "/api/auth/register": config.rate_limit_register,  # Register: 10/hour (prevent spam)
-    "/api/auth/forgot-password": config.rate_limit_forgot_password,  # Reset: 3/hour
+    "/api/auth/login": one.env.rate_limit_login,  # Login: 5/minute (prevent brute force)
+    "/api/auth/register": one.env.rate_limit_register,  # Register: 10/hour (prevent spam)
+    "/api/auth/forgot-password": one.env.rate_limit_forgot_password,  # Reset: 3/hour
 }
 app.middleware("http")(create_path_rate_limit_middleware(path_rate_limits))
 
 # Setup CSRF protection
 # Note: API endpoints using Bearer token auth are exempt from CSRF checks
 # because they don't use cookies for authentication
-setup_csrf_protection(app, config.secret_key)
+setup_csrf_protection(app, one.env.secret_key)
 
 
 # =============================================================================
@@ -190,9 +190,9 @@ async def add_refresh_token_on_login(request: Request, call_next):
 
                     # Determine token lifetime based on remember_me
                     token_lifetime = (
-                        config.remember_me_refresh_token_lifetime
+                        one.env.remember_me_refresh_token_lifetime
                         if remember_me
-                        else config.refresh_token_lifetime
+                        else one.env.refresh_token_lifetime
                     )
 
                     async with async_session_maker() as session:
@@ -283,7 +283,7 @@ app.include_router(
 # Custom Authentication Routes
 # =============================================================================
 @app.post("/api/auth/logout", response_model=MessageResponse, tags=["auth"])
-@limiter.limit(config.rate_limit_default)
+@limiter.limit(one.env.rate_limit_default)
 async def logout(
     request: Request,
     user: User = Depends(current_active_user),
@@ -295,7 +295,7 @@ async def logout(
     Clears the refresh token cookie and removes it from the database.
     """
     # Get refresh token from cookie
-    refresh_token = request.cookies.get(config.refresh_token_cookie_name)
+    refresh_token = request.cookies.get(one.env.refresh_token_cookie_name)
 
     if refresh_token:
         await revoke_refresh_token(session, refresh_token)
@@ -306,14 +306,14 @@ async def logout(
         status_code=200,
     )
     response.delete_cookie(
-        key=config.refresh_token_cookie_name,
+        key=one.env.refresh_token_cookie_name,
         path="/api/auth",
     )
     return response
 
 
 @app.post("/api/auth/refresh", response_model=TokenRefreshResponse, tags=["auth"])
-@limiter.limit(config.rate_limit_default)
+@limiter.limit(one.env.rate_limit_default)
 async def refresh_access_token(
     request: Request,
     session: AsyncSession = Depends(get_async_session),
@@ -329,7 +329,7 @@ async def refresh_access_token(
     from .models import User as UserModel
 
     # Get refresh token from cookie
-    refresh_token = request.cookies.get(config.refresh_token_cookie_name)
+    refresh_token = request.cookies.get(one.env.refresh_token_cookie_name)
 
     if not refresh_token:
         raise HTTPException(
@@ -366,7 +366,7 @@ async def refresh_access_token(
 
 
 @app.post("/api/auth/logout-all", response_model=MessageResponse, tags=["auth"])
-@limiter.limit(config.rate_limit_login)
+@limiter.limit(one.env.rate_limit_login)
 async def logout_all_devices(
     request: Request,
     user: User = Depends(current_active_user),
@@ -388,14 +388,14 @@ async def logout_all_devices(
         status_code=200,
     )
     response.delete_cookie(
-        key=config.refresh_token_cookie_name,
+        key=one.env.refresh_token_cookie_name,
         path="/api/auth",
     )
     return response
 
 
 @app.post("/api/auth/change-password", response_model=MessageResponse, tags=["auth"])
-@limiter.limit(config.rate_limit_login)
+@limiter.limit(one.env.rate_limit_login)
 async def change_password(
     request: Request,
     data: ChangePasswordRequest,
@@ -434,7 +434,7 @@ async def change_password(
 # Firebase OAuth Login
 # =============================================================================
 @app.post("/api/auth/firebase", response_model=FirebaseLoginResponse, tags=["auth"])
-@limiter.limit(config.rate_limit_login)
+@limiter.limit(one.env.rate_limit_login)
 async def firebase_login(
     request: Request,
     data: FirebaseLoginRequest,
@@ -457,7 +457,7 @@ async def firebase_login(
     from .auth.users import get_jwt_strategy
 
     # Check if Firebase is enabled
-    if not config.firebase_enabled:
+    if not one.env.firebase_enabled:
         raise HTTPException(
             status_code=503,
             detail="FIREBASE_AUTH_DISABLED",
@@ -544,7 +544,7 @@ async def firebase_login(
 
     # Create refresh token
     refresh_token_str = await create_refresh_token(
-        session, user.id, config.refresh_token_lifetime
+        session, user.id, one.env.refresh_token_lifetime
     )
 
     # Build response with refresh token cookie
@@ -555,7 +555,7 @@ async def firebase_login(
             "is_new_user": is_new_user,
         }
     )
-    cookie_settings = get_refresh_token_cookie_settings(config.refresh_token_lifetime)
+    cookie_settings = get_refresh_token_cookie_settings(one.env.refresh_token_lifetime)
     response.set_cookie(value=refresh_token_str, **cookie_settings)
 
     return response
@@ -577,7 +577,7 @@ async def verify_email_page(
     # The actual verification is handled by fastapi-users POST /api/auth/verify
     # This page should redirect to a frontend page that will call the API
     return RedirectResponse(
-        url=f"{config.frontend_url}/signin?verified=pending&token={token}",
+        url=f"{one.env.frontend_url}/signin?verified=pending&token={token}",
         status_code=status.HTTP_302_FOUND,
     )
 
@@ -596,7 +596,7 @@ async def reset_password_redirect(
     It redirects to the reset password page with the token.
     """
     return RedirectResponse(
-        url=f"{config.frontend_url}/reset-password?token={token}",
+        url=f"{one.env.frontend_url}/reset-password?token={token}",
         status_code=status.HTTP_302_FOUND,
     )
 
@@ -605,7 +605,7 @@ async def reset_password_redirect(
 # User Data API Routes
 # =============================================================================
 @app.get("/api/user-data", response_model=UserDataRead, tags=["user-data"])
-@limiter.limit(config.rate_limit_default)
+@limiter.limit(one.env.rate_limit_default)
 async def get_user_data(
     request: Request,
     user: User = Depends(current_verified_user),
@@ -626,7 +626,7 @@ async def get_user_data(
 
 
 @app.put("/api/user-data", response_model=UserDataRead, tags=["user-data"])
-@limiter.limit(config.rate_limit_default)
+@limiter.limit(one.env.rate_limit_default)
 async def update_user_data(
     request: Request,
     data: UserDataUpdate,

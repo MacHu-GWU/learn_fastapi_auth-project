@@ -11,7 +11,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-from learn_fastapi_auth.config import config
+from learn_fastapi_auth.one.api import one
 
 
 class Base(DeclarativeBase):
@@ -21,7 +21,7 @@ class Base(DeclarativeBase):
 
 
 # Create async engine
-engine = create_async_engine(config.database_url, echo=False)
+engine = create_async_engine(one.env.async_db_url, echo=False)
 
 # Create async session factory
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)

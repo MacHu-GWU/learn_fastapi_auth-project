@@ -26,7 +26,7 @@ from typing import List, Optional, Set
 from fastapi import Request
 from starlette_csrf import CSRFMiddleware
 
-from .config import config
+from .one.api import one
 
 
 def get_csrf_token(request: Request) -> Optional[str]:
@@ -45,7 +45,7 @@ def get_csrf_token(request: Request) -> Optional[str]:
     Usage in template:
         <input type="hidden" name="csrftoken" value="{{ csrf_token }}">
     """
-    return request.cookies.get(config.csrf_cookie_name)
+    return request.cookies.get(one.env.csrf_cookie_name)
 
 
 def create_csrf_exempt_patterns() -> List[re.Pattern]:
@@ -124,9 +124,9 @@ def setup_csrf_protection(app, secret: str) -> None:
         secret=secret,
         exempt_urls=create_csrf_exempt_patterns(),
         required_urls=create_csrf_required_patterns(),
-        cookie_name=config.csrf_cookie_name,
-        cookie_secure=config.csrf_cookie_secure,
-        cookie_samesite=config.csrf_cookie_samesite,
+        cookie_name=one.env.csrf_cookie_name,
+        cookie_secure=one.env.csrf_cookie_secure,
+        cookie_samesite=one.env.csrf_cookie_samesite,
         # cookie_httponly=False allows JavaScript to read the token
         # This is necessary for AJAX requests to include the token in headers
         cookie_httponly=False,
@@ -161,4 +161,4 @@ def get_csrf_cookie_name() -> str:
     Returns:
         Cookie name string from configuration
     """
-    return config.csrf_cookie_name
+    return one.env.csrf_cookie_name

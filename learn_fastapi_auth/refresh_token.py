@@ -21,7 +21,7 @@ from typing import Optional
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .config import config
+from .one.api import one
 from .models import RefreshToken
 
 
@@ -56,7 +56,7 @@ async def create_refresh_token(
         The generated refresh token string
     """
     token_str = generate_refresh_token()
-    actual_lifetime = lifetime_seconds if lifetime_seconds is not None else config.refresh_token_lifetime
+    actual_lifetime = lifetime_seconds if lifetime_seconds is not None else one.env.refresh_token_lifetime
     expires_at = datetime.now(timezone.utc) + timedelta(
         seconds=actual_lifetime
     )
@@ -203,12 +203,12 @@ def get_refresh_token_cookie_settings(lifetime_seconds: Optional[int] = None) ->
     Returns:
         Dictionary with cookie configuration
     """
-    actual_lifetime = lifetime_seconds if lifetime_seconds is not None else config.refresh_token_lifetime
+    actual_lifetime = lifetime_seconds if lifetime_seconds is not None else one.env.refresh_token_lifetime
     return {
-        "key": config.refresh_token_cookie_name,
+        "key": one.env.refresh_token_cookie_name,
         "httponly": True,  # JavaScript cannot access this cookie
-        "secure": config.refresh_token_cookie_secure,
-        "samesite": config.refresh_token_cookie_samesite,
+        "secure": one.env.refresh_token_cookie_secure,
+        "samesite": one.env.refresh_token_cookie_samesite,
         "max_age": actual_lifetime,
         "path": "/api/auth",  # Only send cookie to auth endpoints
     }

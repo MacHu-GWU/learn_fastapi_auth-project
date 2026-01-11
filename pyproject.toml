@@ -55,6 +55,7 @@ dependencies = [
     "SQLAlchemy>=2.0.44,<3.0.0",
     "aiosqlite>=0.20.0,<1.0.0",  # Async SQLite support (local dev)
     "asyncpg>=0.30.0,<1.0.0",  # Async PostgreSQL support (production)
+    "pg8000>=1.31.0,<2.0.0",
     # Web framework
     "fastapi>=0.123.10,<1.0.0",
     "fastapi-users[sqlalchemy]>=15.0.1,<16.0.0",  # User authentication
