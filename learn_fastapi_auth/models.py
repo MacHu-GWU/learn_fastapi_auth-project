@@ -10,12 +10,11 @@ Defines the database models for:
 """
 
 from datetime import datetime
-from typing import Optional
+import typing as T
 import uuid
 
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTableUUID
 from sqlalchemy import DateTime, ForeignKey, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from learn_fastapi_auth.database import Base
@@ -36,30 +35,20 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
 
     __tablename__ = "users"
 
+    # fmt: off
     # Additional fields beyond fastapi-users defaults
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Firebase OAuth - stores Firebase UID for users who sign in via Google/Apple
     # Nullable because password-based users don't have a Firebase UID
-    firebase_uid: Mapped[Optional[str]] = mapped_column(
-        String(128), unique=True, nullable=True, index=True
-    )
+    firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True, index=True)
 
     # Relationships
-    user_data: Mapped[Optional["UserData"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan", uselist=False
-    )
-    tokens: Mapped[list["Token"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
+    user_data: Mapped[T.Optional["UserData"]] = relationship(back_populates="user", cascade="all, delete-orphan", uselist=False)
+    tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    # fmt: on
 
 
 class UserData(Base):
@@ -71,19 +60,15 @@ class UserData(Base):
 
     __tablename__ = "user_data"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
-    )
+    # fmt: off
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     text_value: Mapped[str] = mapped_column(Text, default="")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationship back to User
     user: Mapped["User"] = relationship(back_populates="user_data")
+    # fmt: on
 
 
 class Token(Base):
@@ -95,17 +80,15 @@ class Token(Base):
 
     __tablename__ = "tokens"
 
+    # fmt: off
     token: Mapped[str] = mapped_column(String(500), primary_key=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     # Relationship back to User
     user: Mapped["User"] = relationship(back_populates="tokens")
+    # fmt: on
 
 
 class RefreshToken(Base):
@@ -123,14 +106,12 @@ class RefreshToken(Base):
 
     __tablename__ = "refresh_tokens"
 
+    # fmt: off
     token: Mapped[str] = mapped_column(String(500), primary_key=True)
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE")
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     # Relationship back to User
     user: Mapped["User"] = relationship(back_populates="refresh_tokens")
+    # fmt: on
