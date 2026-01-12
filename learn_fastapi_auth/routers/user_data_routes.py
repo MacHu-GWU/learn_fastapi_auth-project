@@ -20,7 +20,10 @@ from ..schemas import UserDataRead, UserDataUpdate
 router = APIRouter(prefix="/api/user-data", tags=["user-data"])
 
 
-@router.get("", response_model=UserDataRead)
+@router.get(
+    "",
+    response_model=UserDataRead,
+)
 @limiter.limit(one.env.rate_limit_default)
 async def get_user_data(
     request: Request,
@@ -41,7 +44,10 @@ async def get_user_data(
     return user_data
 
 
-@router.put("", response_model=UserDataRead)
+@router.put(
+    "",
+    response_model=UserDataRead,
+)
 @limiter.limit(one.env.rate_limit_default)
 async def update_user_data(
     request: Request,

@@ -95,7 +95,11 @@ router.include_router(
 # =============================================================================
 # Custom Authentication Routes
 # =============================================================================
-@router.post("/api/auth/logout", response_model=MessageResponse, tags=["auth"])
+@router.post(
+    "/api/auth/logout",
+    response_model=MessageResponse,
+    tags=["auth"],
+)
 @limiter.limit(one.env.rate_limit_default)
 async def logout(
     request: Request,
@@ -125,7 +129,11 @@ async def logout(
     return response
 
 
-@router.post("/api/auth/refresh", response_model=TokenRefreshResponse, tags=["auth"])
+@router.post(
+    "/api/auth/refresh",
+    response_model=TokenRefreshResponse,
+    tags=["auth"],
+)
 @limiter.limit(one.env.rate_limit_default)
 async def refresh_access_token(
     request: Request,
@@ -172,7 +180,11 @@ async def refresh_access_token(
     return TokenRefreshResponse(access_token=access_token)
 
 
-@router.post("/api/auth/logout-all", response_model=MessageResponse, tags=["auth"])
+@router.post(
+    "/api/auth/logout-all",
+    response_model=MessageResponse,
+    tags=["auth"],
+)
 @limiter.limit(one.env.rate_limit_login)
 async def logout_all_devices(
     request: Request,
@@ -201,7 +213,11 @@ async def logout_all_devices(
     return response
 
 
-@router.post("/api/auth/change-password", response_model=MessageResponse, tags=["auth"])
+@router.post(
+    "/api/auth/change-password",
+    response_model=MessageResponse,
+    tags=["auth"],
+)
 @limiter.limit(one.env.rate_limit_login)
 async def change_password(
     request: Request,
@@ -238,7 +254,11 @@ async def change_password(
 # =============================================================================
 # Firebase OAuth Login
 # =============================================================================
-@router.post("/api/auth/firebase", response_model=FirebaseLoginResponse, tags=["auth"])
+@router.post(
+    "/api/auth/firebase",
+    response_model=FirebaseLoginResponse,
+    tags=["auth"],
+)
 @limiter.limit(one.env.rate_limit_login)
 async def firebase_login(
     request: Request,
@@ -292,7 +312,9 @@ async def firebase_login(
     is_new_user = False
 
     # Try to find existing user by firebase_uid
-    result = await session.execute(select(User).where(User.firebase_uid == firebase_uid))
+    result = await session.execute(
+        select(User).where(User.firebase_uid == firebase_uid)
+    )
     user = result.scalar_one_or_none()
 
     if user is None:
