@@ -32,10 +32,10 @@ def setup_all_middleware(app: FastAPI) -> None:
     ================
 
     - **CORS** (:func:`setup_cors`): Allow cross-origin requests from frontend
-    - **Rate Limiting** (SlowAPI): Global rate limiting for decorated routes
+    - **Rate Limiting** (:func:`setup_slowapi_middleware`): Global rate limiting for decorated routes
     - **Path Rate Limiting** (:func:`setup_path_rate_limits`): Rate limits for fastapi-users routes
-    - **CSRF Protection**: Prevent cross-site request forgery attacks
-    - **Login Middleware** (:func:`add_refresh_token_on_login`): Add refresh token cookie after login
+    - **CSRF Protection** (:func:`setup_csrf`): Prevent cross-site request forgery attacks
+    - **Login Middleware** (:func:`setup_login_middleware`): Add refresh token cookie after login
 
     Execution Order (Important!)
     ============================
@@ -66,17 +66,16 @@ def setup_all_middleware(app: FastAPI) -> None:
     setup_cors(app)
 
     # Rate limiting
-    setup_rate_limiting(app)
-    app.add_middleware(SlowAPIMiddleware)
+    setup_slowapi_middleware(app)
 
     # Path-based rate limiting for fastapi-users routes
     setup_path_rate_limits(app)
 
     # CSRF protection
-    setup_csrf_protection(app, one.env.secret_key)
+    setup_csrf(app)
 
     # Login middleware (innermost - processes last on request, first on response)
-    app.middleware("http")(add_refresh_token_on_login)
+    setup_login_middleware(app)
 
 
 def setup_cors(app: FastAPI) -> None:
@@ -140,6 +139,46 @@ def setup_cors(app: FastAPI) -> None:
     )
 
 
+def setup_slowapi_middleware(app: FastAPI) -> None:
+    """
+    Configure SlowAPI rate limiting middleware.
+
+    Why Two Steps?
+    ==============
+
+    SlowAPI requires two separate setup steps:
+
+    1. **Register limiter** (:func:`setup_rate_limiting`): Stores the limiter instance
+       in ``app.state.limiter`` so ``@limiter.limit()`` decorators can find it.
+
+    2. **Add middleware** (this function): Adds the actual middleware that intercepts
+       requests and enforces rate limits.
+
+    This function handles both steps together for convenience.
+
+    How It Works
+    ============
+
+    ::
+
+        @router.get("/api/resource")
+        @limiter.limit("10/minute")      ← Decorator marks the route
+        async def get_resource():
+            ...
+
+        Request arrives
+              ↓
+        SlowAPIMiddleware checks if route has @limiter.limit
+              ↓
+        Yes → Check rate limit for client IP
+              ↓
+        Under limit? → Continue
+        Over limit?  → Return 429 Too Many Requests
+    """
+    setup_rate_limiting(app)
+    app.add_middleware(SlowAPIMiddleware)
+
+
 def setup_path_rate_limits(app: FastAPI) -> None:
     """
     Configure path-based rate limiting for specific routes.
@@ -183,7 +222,52 @@ def setup_path_rate_limits(app: FastAPI) -> None:
     app.middleware("http")(create_path_rate_limit_middleware(path_rate_limits))
 
 
-async def add_refresh_token_on_login(request: Request, call_next):
+def setup_csrf(app: FastAPI) -> None:
+    """
+    Configure CSRF (Cross-Site Request Forgery) protection middleware.
+
+    Why CSRF Protection?
+    ====================
+
+    CSRF attacks exploit the browser's automatic cookie sending behavior::
+
+        1. User logs into your-app.com (session cookie set)
+        2. User visits malicious-site.com
+        3. Malicious site has: <form action="your-app.com/transfer" method="POST">
+        4. Form auto-submits, browser sends cookies automatically
+        5. Your backend thinks it's a legitimate request ← Danger!
+
+    How CSRF Protection Works
+    =========================
+
+    ::
+
+        1. Backend generates CSRF token, sends to frontend
+        2. Frontend includes token in request header (X-CSRF-Token)
+        3. Backend validates token matches
+        4. Malicious sites can't access the token (Same-Origin Policy)
+
+    Configuration
+    =============
+
+    The CSRF secret key is derived from the application's ``SECRET_KEY``.
+
+    Protected methods: POST, PUT, PATCH, DELETE (state-changing operations).
+    """
+    setup_csrf_protection(app, one.env.secret_key)
+
+
+def setup_login_middleware(app: FastAPI) -> None:
+    """
+    Configure login middleware for refresh token handling.
+
+    This middleware intercepts login responses to add refresh token cookies.
+    See :func:`_add_refresh_token_on_login` for implementation details.
+    """
+    app.middleware("http")(_add_refresh_token_on_login)
+
+
+async def _add_refresh_token_on_login(request: Request, call_next):
     """
     Middleware to add refresh token cookie after successful login.
 
