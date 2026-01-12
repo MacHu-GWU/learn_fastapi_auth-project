@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/hooks/useToast';
 import { validateEmail, validatePassword } from '@/lib/auth';
-import { getErrorMessage, getFieldError } from '@/lib/errors';
+import { getErrorMessage, getFieldError, API_ENDPOINTS, ROUTES, REDIRECT_DELAY } from '@/constants';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -49,7 +49,7 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -60,8 +60,8 @@ export default function SignUpPage() {
       if (response.ok) {
         showToast('Registration successful! Please check your email for verification link.', 'success');
         setTimeout(() => {
-          router.push('/');
-        }, 3000);
+          router.push(ROUTES.HOME);
+        }, REDIRECT_DELAY.REGISTRATION);
       } else {
         const errorCode = data.detail;
         const fieldError = getFieldError(errorCode);
@@ -132,7 +132,7 @@ export default function SignUpPage() {
 
         <p className="text-center mt-6 text-gray-600">
           Already have an account?{' '}
-          <Link href="/signin" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNIN} className="text-blue-600 hover:underline">
             Sign In
           </Link>
         </p>

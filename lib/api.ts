@@ -3,6 +3,7 @@
  */
 
 import { getToken, removeToken } from './auth';
+import { API_ENDPOINTS, ROUTES } from '@/constants';
 
 // =============================================================================
 // Types
@@ -62,7 +63,7 @@ export async function apiRequest<T = unknown>(
     // Refresh failed, redirect to signin
     removeToken();
     if (typeof window !== 'undefined') {
-      window.location.href = '/signin?error=session_expired';
+      window.location.href = `${ROUTES.SIGNIN}?error=session_expired`;
     }
   }
 
@@ -74,7 +75,7 @@ export async function apiRequest<T = unknown>(
  */
 async function tryRefreshToken(): Promise<boolean> {
   try {
-    const response = await fetch('/api/auth/refresh', {
+    const response = await fetch(API_ENDPOINTS.AUTH.REFRESH, {
       method: 'POST',
       credentials: 'include',
     });

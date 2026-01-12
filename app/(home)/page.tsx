@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { isLoggedIn } from '@/lib/auth';
+import { ROUTES } from '@/constants';
 
 export default function Home() {
   // Bug fix: Check login state to show appropriate CTA buttons.
@@ -32,7 +33,7 @@ export default function Home() {
         <div className="flex gap-4">
           {loggedIn ? (
             <Link
-              href="/dashboard"
+              href={ROUTES.DASHBOARD}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
               Go to Dashboard
@@ -40,13 +41,13 @@ export default function Home() {
           ) : (
             <>
               <Link
-                href="/signup"
+                href={ROUTES.SIGNUP}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 Create Account
               </Link>
               <Link
-                href="/signin"
+                href={ROUTES.SIGNIN}
                 className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
               >
                 Sign In

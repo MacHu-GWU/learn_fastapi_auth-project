@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/hooks/useToast';
 import { validatePassword } from '@/lib/auth';
-import { getErrorMessage } from '@/lib/errors';
+import { getErrorMessage, API_ENDPOINTS, ROUTES, REDIRECT_DELAY } from '@/constants';
 
 function ResetPasswordContent() {
   const router = useRouter();
@@ -24,8 +24,8 @@ function ResetPasswordContent() {
     if (!tokenParam) {
       showToast('Invalid or missing reset token. Please request a new password reset.', 'error');
       setTimeout(() => {
-        router.push('/forgot-password');
-      }, 2000);
+        router.push(ROUTES.FORGOT_PASSWORD);
+      }, REDIRECT_DELAY.LONG);
     } else {
       setToken(tokenParam);
     }
@@ -56,7 +56,7 @@ function ResetPasswordContent() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch(API_ENDPOINTS.AUTH.RESET_PASSWORD, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password }),
@@ -65,8 +65,8 @@ function ResetPasswordContent() {
       if (response.ok) {
         showToast('Password reset successfully! Redirecting to sign in...', 'success');
         setTimeout(() => {
-          router.push('/signin?reset=success');
-        }, 2000);
+          router.push(`${ROUTES.SIGNIN}?reset=success`);
+        }, REDIRECT_DELAY.LONG);
       } else {
         const data = await response.json();
         const errorCode = data.detail;
@@ -131,7 +131,7 @@ function ResetPasswordContent() {
         </form>
 
         <p className="text-center mt-6 text-gray-600">
-          <Link href="/signin" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNIN} className="text-blue-600 hover:underline">
             Back to Sign In
           </Link>
         </p>

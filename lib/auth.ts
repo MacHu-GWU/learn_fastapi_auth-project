@@ -3,8 +3,7 @@
  * Handles token storage and auth state management.
  */
 
-const AUTH_TOKEN_KEY = 'auth_token';
-const USER_EMAIL_KEY = 'user_email';
+import { STORAGE_KEYS, VALIDATION, AUTH_EVENTS } from '@/constants';
 
 // =============================================================================
 // Token Management
@@ -12,32 +11,32 @@ const USER_EMAIL_KEY = 'user_email';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
 }
 
 export function setToken(token: string): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
+  localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
   // Bug fix: Dispatch custom event so Navbar can update immediately after login.
   // Without this, Navbar only checks auth state on mount, so after OAuth login
   // and redirect, it would still show "Sign In" until page refresh.
-  window.dispatchEvent(new Event('auth-change'));
+  window.dispatchEvent(new Event(AUTH_EVENTS.AUTH_CHANGE));
 }
 
 export function removeToken(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(USER_EMAIL_KEY);
+  localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+  localStorage.removeItem(STORAGE_KEYS.USER_EMAIL);
 }
 
 export function getUserEmail(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(USER_EMAIL_KEY);
+  return localStorage.getItem(STORAGE_KEYS.USER_EMAIL);
 }
 
 export function setUserEmail(email: string): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(USER_EMAIL_KEY, email);
+  localStorage.setItem(STORAGE_KEYS.USER_EMAIL, email);
 }
 
 export function isLoggedIn(): boolean {
@@ -49,11 +48,14 @@ export function isLoggedIn(): boolean {
 // =============================================================================
 
 export function validateEmail(email: string): boolean {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+  return VALIDATION.EMAIL_REGEX.test(email);
 }
 
 export function validatePassword(password: string): boolean {
   // At least 8 characters, contains letter and number
-  return password.length >= 8 && /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
+  return (
+    password.length >= VALIDATION.PASSWORD_MIN_LENGTH &&
+    VALIDATION.PASSWORD_LETTER_REGEX.test(password) &&
+    VALIDATION.PASSWORD_NUMBER_REGEX.test(password)
+  );
 }

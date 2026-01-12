@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/hooks/useToast';
 import { validateEmail } from '@/lib/auth';
-import { getErrorMessage } from '@/lib/errors';
+import { getErrorMessage, API_ENDPOINTS, ROUTES } from '@/constants';
 
 export default function ForgotPasswordPage() {
   const { showToast } = useToast();
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      await fetch(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
 
         <p className="text-center mt-6 text-gray-600">
           Remember your password?{' '}
-          <Link href="/signin" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNIN} className="text-blue-600 hover:underline">
             Sign In
           </Link>
         </p>

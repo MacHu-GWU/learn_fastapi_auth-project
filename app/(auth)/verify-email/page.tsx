@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { API_ENDPOINTS, ROUTES } from '@/constants';
 
 type VerificationState = 'loading' | 'success' | 'already_verified' | 'error';
 
@@ -25,7 +26,7 @@ function VerifyEmailContent() {
 
   const verifyEmail = async (token: string) => {
     try {
-      const response = await fetch('/api/auth/verify', {
+      const response = await fetch(API_ENDPOINTS.AUTH.VERIFY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -67,7 +68,7 @@ function VerifyEmailContent() {
             Your email has been successfully verified. You can now sign in to your account.
           </p>
           <Link
-            href="/signin"
+            href={ROUTES.SIGNIN}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Sign In
@@ -83,7 +84,7 @@ function VerifyEmailContent() {
             Your email is already verified. You can sign in to your account.
           </p>
           <Link
-            href="/signin"
+            href={ROUTES.SIGNIN}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Sign In
@@ -97,7 +98,7 @@ function VerifyEmailContent() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Verification Failed</h1>
           <p className="text-gray-600 mb-8">{errorMessage}</p>
           <Link
-            href="/signup"
+            href={ROUTES.SIGNUP}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
             Sign Up Again

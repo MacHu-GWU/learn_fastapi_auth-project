@@ -6,8 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/hooks/useToast';
 import { setToken, setUserEmail, validateEmail } from '@/lib/auth';
-import { getErrorMessage } from '@/lib/errors';
+import { getErrorMessage } from '@/constants';
 import { signInWithGoogle } from '@/lib/firebase';
+import { API_ENDPOINTS, ROUTES, REDIRECT_DELAY } from '@/constants';
 
 // Google Icon SVG
 function GoogleIcon() {
@@ -54,7 +55,7 @@ function SignInContent() {
     showToast('Verifying your email...', 'info');
 
     try {
-      const response = await fetch('/api/auth/verify', {
+      const response = await fetch(API_ENDPOINTS.AUTH.VERIFY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
@@ -62,19 +63,19 @@ function SignInContent() {
 
       if (response.ok) {
         showToast('Email verified successfully! Please sign in.', 'success');
-        window.history.replaceState({}, document.title, '/signin?verified=success');
+        window.history.replaceState({}, document.title, `${ROUTES.SIGNIN}?verified=success`);
       } else {
         const data = await response.json();
         const errorCode = data.detail;
         const toastType = errorCode === 'VERIFY_USER_ALREADY_VERIFIED' ? 'info' : 'error';
         const message = getErrorMessage(errorCode, 'Verification failed. The link may have expired.');
         showToast(message, toastType as 'info' | 'error');
-        window.history.replaceState({}, document.title, '/signin');
+        window.history.replaceState({}, document.title, ROUTES.SIGNIN);
       }
     } catch (error) {
       console.error('Verification error:', error);
       showToast(getErrorMessage('NETWORK_ERROR'), 'error');
-      window.history.replaceState({}, document.title, '/signin');
+      window.history.replaceState({}, document.title, ROUTES.SIGNIN);
     }
   };
 
@@ -84,7 +85,7 @@ function SignInContent() {
     try {
       const idToken = await signInWithGoogle();
 
-      const response = await fetch('/api/auth/firebase', {
+      const response = await fetch(API_ENDPOINTS.AUTH.FIREBASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_token: idToken }),
@@ -104,8 +105,8 @@ function SignInContent() {
         showToast(message, 'success');
 
         setTimeout(() => {
-          router.push('/dashboard');
-        }, 1000);
+          router.push(ROUTES.DASHBOARD);
+        }, REDIRECT_DELAY.DEFAULT);
       } else {
         const errorCode = data.detail;
         const message = getErrorMessage(errorCode, 'Google sign in failed. Please try again.');
@@ -155,7 +156,7 @@ function SignInContent() {
       formData.append('password', password);
       formData.append('remember_me', rememberMe ? 'true' : 'false');
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData,
@@ -170,8 +171,8 @@ function SignInContent() {
 
         showToast('Login successful!', 'success');
         setTimeout(() => {
-          router.push('/dashboard');
-        }, 1000);
+          router.push(ROUTES.DASHBOARD);
+        }, REDIRECT_DELAY.DEFAULT);
       } else {
         const errorCode = data.detail;
         const message = getErrorMessage(errorCode, 'Login failed. Please try again.');
@@ -259,13 +260,13 @@ function SignInContent() {
 
         {/* Links */}
         <p className="text-center mt-6 text-gray-600">
-          <Link href="/forgot-password" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.FORGOT_PASSWORD} className="text-blue-600 hover:underline">
             Forgot your password?
           </Link>
         </p>
         <p className="text-center mt-2 text-gray-600">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNUP} className="text-blue-600 hover:underline">
             Create Account
           </Link>
         </p>
