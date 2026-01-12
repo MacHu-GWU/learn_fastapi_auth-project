@@ -8,6 +8,7 @@ uv = "latest"
 node = "24"
 pnpm = "latest"
 
+# === Tasks
 [tasks.venv-create]
 description = "⭐ Create project virtual environment (.venv)"
 run = "uv venv"
@@ -90,20 +91,16 @@ run = """
 """
 depends = ['build']
 
-[tasks.run-backend]
+[tasks.dev-backend]
 description = "Run FastAPI backend server at localhost:8000"
-run = """
-.venv/bin/python main.py
-"""
+run = ".venv/bin/python main.py"
 depends = ['inst']
 
-[tasks.run-frontend]
+[tasks.dev-frontend]
 description = "Run Next.js frontend dev server at localhost:3000"
-run = """
-pnpm install && pnpm run dev
-"""
+run = "pnpm install && pnpm run dev"
 
-[tasks.run]
+[tasks.dev]
 description = "⭐ Run both backend (port 8000) and frontend (port 3000) servers"
 run = """
 # Start backend in background
