@@ -12,7 +12,10 @@ from fastapi.responses import RedirectResponse
 
 from ..one.api import one
 
-router = APIRouter(prefix="/auth", tags=["pages"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["pages"],
+)
 
 
 @router.get("/verify-email")

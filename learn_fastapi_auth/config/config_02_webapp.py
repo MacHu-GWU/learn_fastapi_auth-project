@@ -18,9 +18,9 @@ if T.TYPE_CHECKING:  # pragma: no cover
 
 class WebAppMixin:
     @property
-    def final_front_end_url(self: "Env") -> str:
+    def final_frontend_url(self: "Env") -> str:
         if runtime.is_local_runtime_group:
-            return "http://localhost:8000"
+            return "http://localhost:3000"
         else:
             return self.frontend_url
 
