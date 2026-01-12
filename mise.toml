@@ -17,9 +17,17 @@ run = "uv venv"
 description = "💥 Remove project virtual environment completely"
 run = "rm -r .venv"
 
-[tasks.inst]
-description = "⭐ Install main runtime dependencies and all extra dependencies (dev, test, doc, ...)"
+[tasks.inst-backend]
+description = "Install Python dependencies (dev, test, doc, ...)"
 run = "uv sync --all-extras"
+
+[tasks.inst-frontend]
+description = "Install Node.js dependencies"
+run = "pnpm install"
+
+[tasks.inst]
+description = "⭐ Install all dependencies (backend + frontend)"
+depends = ['inst-backend', 'inst-frontend']
 
 [tasks.export]
 description = "⭐ Export locked dependencies to requirements.txt for deployment"
@@ -94,11 +102,12 @@ depends = ['build']
 [tasks.dev-backend]
 description = "Run FastAPI backend server at localhost:8000"
 run = ".venv/bin/python main.py"
-depends = ['inst']
+depends = ['inst-backend']
 
 [tasks.dev-frontend]
 description = "Run Next.js frontend dev server at localhost:3000"
-run = "pnpm install && pnpm run dev"
+run = "pnpm run dev"
+depends = ['inst-frontend']
 
 [tasks.dev]
 description = "⭐ Run both backend (port 8000) and frontend (port 3000) servers"
@@ -110,14 +119,12 @@ BACKEND_PID=$!
 # Trap to kill backend when script exits
 trap "kill $BACKEND_PID 2>/dev/null" EXIT
 
-# Install frontend dependencies and start frontend in foreground
-pnpm install && pnpm run dev
+# Start frontend in foreground
+pnpm run dev
 """
 depends = ['inst']
 
 [tasks.kill]
 description = "Kill debug server at localhost"
-run = """
-.venv/bin/python scripts/kill_all_servers.py
-"""
-depends = ['inst']
+run = ".venv/bin/python scripts/kill_all_servers.py"
+depends = ['inst-backend']
