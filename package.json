@@ -24,5 +24,9 @@
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "//": "sharp build scripts not needed: Vercel has built-in image optimization, Next.js has JS fallback for local dev. Rename to 'onlyBuiltDependencies' if you need faster local image processing.",
+    "//onlyBuiltDependencies": ["sharp"]
   }
 }
