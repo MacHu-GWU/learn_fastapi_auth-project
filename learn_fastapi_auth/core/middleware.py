@@ -3,11 +3,9 @@
 """
 Middleware Configuration.
 
-Centralizes all middleware setup for the FastAPI application:
-- CORS middleware
-- Rate limiting middleware
-- CSRF protection middleware
-- Login middleware (refresh token handling)
+This module centralizes all middleware setup for the FastAPI application.
+
+See :func:`setup_all_middleware` for the complete middleware stack and execution order.
 """
 
 import json
@@ -26,14 +24,93 @@ from ..ratelimit import create_path_rate_limit_middleware, setup_rate_limiting
 from ..refresh_token import create_refresh_token, get_refresh_token_cookie_settings
 
 
+def setup_all_middleware(app: FastAPI) -> None:
+    """
+    Configure all middleware for the FastAPI application.
+
+    Middleware Stack
+    ================
+
+    - **CORS** (:func:`setup_cors`): Allow cross-origin requests from frontend
+    - **Rate Limiting** (SlowAPI): Global rate limiting for decorated routes
+    - **Path Rate Limiting** (:func:`setup_path_rate_limits`): Rate limits for fastapi-users routes
+    - **CSRF Protection**: Prevent cross-site request forgery attacks
+    - **Login Middleware** (:func:`add_refresh_token_on_login`): Add refresh token cookie after login
+
+    Execution Order (Important!)
+    ============================
+
+    Middleware follows the **onion model**: added last = executes first.
+
+    **Code addition order** (in this function)::
+
+        1. CORS           ← added first
+        2. Rate Limiting
+        3. Path Rate Limiting
+        4. CSRF
+        5. Login          ← added last
+
+    **Request processing order** (reversed)::
+
+        Request  →  CORS → RateLimit → PathLimit → CSRF → Login → Route Handler
+        Response ←  CORS ← RateLimit ← PathLimit ← CSRF ← Login ← Route Handler
+
+    Why this order?
+
+    1. **CORS first**: Must add CORS headers even if request is rejected later
+    2. **Rate limiting early**: Block abusive requests before expensive operations
+    3. **CSRF before business logic**: Security check before processing
+    4. **Login last**: Needs to intercept response after route handler completes
+    """
+    # CORS (outermost - processes first on request, last on response)
+    setup_cors(app)
+
+    # Rate limiting
+    setup_rate_limiting(app)
+    app.add_middleware(SlowAPIMiddleware)
+
+    # Path-based rate limiting for fastapi-users routes
+    setup_path_rate_limits(app)
+
+    # CSRF protection
+    setup_csrf_protection(app, one.env.secret_key)
+
+    # Login middleware (innermost - processes last on request, first on response)
+    app.middleware("http")(add_refresh_token_on_login)
+
+
 def setup_cors(app: FastAPI) -> None:
     """
-    Configure CORS middleware for the application.
+    Configure CORS (Cross-Origin Resource Sharing) middleware.
 
-    Allows requests from:
-    - localhost:3000 (Next.js dev server)
-    - Vercel production domain
-    - Custom origins from CORS_ORIGINS env var
+    Why CORS?
+    =========
+
+    Browsers block requests from different origins by default (Same-Origin Policy).
+    Without CORS, your frontend (localhost:3000) cannot call your backend (localhost:8000)::
+
+        Frontend (localhost:3000) ──request──> Backend (localhost:8000)
+                                                    ↓
+                                        Browser: Different port! Blocked!
+                                                    ↓
+                                        CORS Header: "localhost:3000 is allowed"
+                                                    ↓
+                                        Browser: OK, proceed
+
+    Configuration
+    =============
+
+    Allowed origins:
+
+    - ``localhost:3000``, ``127.0.0.1:3000`` - Next.js dev server
+    - ``*.vercel.app`` - Vercel deployments (when VERCEL env is set)
+    - Custom origins from ``CORS_ORIGINS`` environment variable
+
+    Important settings:
+
+    - ``allow_credentials=True`` - Required for cookies (refresh token)
+    - ``allow_methods=["*"]`` - Allow all HTTP methods
+    - ``allow_headers=["*"]`` - Allow all headers (including Authorization)
     """
     cors_origins = [
         "http://localhost:3000",  # Next.js dev server
@@ -65,15 +142,43 @@ def setup_cors(app: FastAPI) -> None:
 
 def setup_path_rate_limits(app: FastAPI) -> None:
     """
-    Configure path-based rate limiting for fastapi-users routes.
+    Configure path-based rate limiting for specific routes.
 
-    These routes cannot use @limiter.limit() decorator directly,
-    so we use middleware-based rate limiting.
+    Why Path-Based Rate Limiting?
+    =============================
+
+    The ``@limiter.limit()`` decorator only works on routes we define ourselves.
+    Routes from ``fastapi-users`` (login, register, etc.) are pre-built and cannot
+    be decorated directly.
+
+    This middleware intercepts requests by path and applies rate limits::
+
+        POST /api/auth/login
+                ↓
+        Middleware: Check if path matches "/api/auth/login"
+                ↓
+        Yes → Apply "5/minute" rate limit
+                ↓
+        Under limit? → Continue to route handler
+        Over limit?  → Return 429 Too Many Requests
+
+    Rate Limits
+    ===========
+
+    +---------------------------+-------------+--------------------------------+
+    | Path                      | Limit       | Reason                         |
+    +===========================+=============+================================+
+    | ``/api/auth/login``       | 5/minute    | Prevent brute-force attacks    |
+    +---------------------------+-------------+--------------------------------+
+    | ``/api/auth/register``    | 10/hour     | Prevent spam account creation  |
+    +---------------------------+-------------+--------------------------------+
+    | ``/api/auth/forgot-password`` | 3/hour  | Prevent email bombing          |
+    +---------------------------+-------------+--------------------------------+
     """
     path_rate_limits = {
-        "/api/auth/login": one.env.rate_limit_login,  # Login: 5/minute
-        "/api/auth/register": one.env.rate_limit_register,  # Register: 10/hour
-        "/api/auth/forgot-password": one.env.rate_limit_forgot_password,  # Reset: 3/hour
+        "/api/auth/login": one.env.rate_limit_login,
+        "/api/auth/register": one.env.rate_limit_register,
+        "/api/auth/forgot-password": one.env.rate_limit_forgot_password,
     }
     app.middleware("http")(create_path_rate_limit_middleware(path_rate_limits))
 
@@ -82,12 +187,53 @@ async def add_refresh_token_on_login(request: Request, call_next):
     """
     Middleware to add refresh token cookie after successful login.
 
-    This intercepts responses from /api/auth/login and adds a refresh token
-    cookie for the token refresh mechanism.
+    Why This Middleware?
+    ====================
 
-    Supports "Remember Me" functionality:
-    - If remember_me=true: refresh token lasts 30 days
-    - If remember_me=false (default): refresh token lasts 7 days
+    The ``fastapi-users`` login route only returns an access token.
+    We need to also issue a refresh token for the token refresh mechanism.
+
+    Since we can't modify ``fastapi-users`` route directly, this middleware
+    intercepts the login response and adds the refresh token cookie.
+
+    How It Works
+    ============
+
+    ::
+
+        POST /api/auth/login {username, password, remember_me}
+                ↓
+        [1] Middleware intercepts request, extracts remember_me parameter
+                ↓
+        [2] Request passes through to fastapi-users login handler
+                ↓
+        [3] Login handler returns {access_token: "..."}
+                ↓
+        [4] Middleware intercepts response
+                ↓
+        [5] Decode access_token to get user_id (no signature verification needed)
+                ↓
+        [6] Create refresh_token in database
+                ↓
+        [7] Set refresh_token as HttpOnly cookie
+                ↓
+        [8] Return modified response with cookie
+
+    Remember Me Feature
+    ===================
+
+    The ``remember_me`` form field controls refresh token lifetime:
+
+    - ``remember_me=true``: 30 days (configured via ``remember_me_refresh_token_lifetime``)
+    - ``remember_me=false`` (default): 7 days (configured via ``refresh_token_lifetime``)
+
+    Technical Notes
+    ===============
+
+    - Request body is read and cached to extract ``remember_me``, then re-attached
+      so the route handler can read it again
+    - Response body is consumed to parse JSON, then a new JSONResponse is created
+    - JWT is decoded without signature verification (we trust our own response)
     """
     # Check if this is a login request and extract remember_me before processing
     remember_me = False
@@ -172,34 +318,3 @@ async def add_refresh_token_on_login(request: Request, call_next):
         )
 
     return response
-
-
-def setup_all_middleware(app: FastAPI) -> None:
-    """
-    Configure all middleware for the FastAPI application.
-
-    Order matters! Middleware is executed in reverse order of addition.
-    The last middleware added is the first to process requests.
-
-    Current order (request flow):
-    1. Login middleware (adds refresh token cookie)
-    2. CSRF protection
-    3. Path-based rate limiting
-    4. SlowAPI rate limiting
-    5. CORS
-    """
-    # CORS (outermost - processes first on request, last on response)
-    setup_cors(app)
-
-    # Rate limiting
-    setup_rate_limiting(app)
-    app.add_middleware(SlowAPIMiddleware)
-
-    # Path-based rate limiting for fastapi-users routes
-    setup_path_rate_limits(app)
-
-    # CSRF protection
-    setup_csrf_protection(app, one.env.secret_key)
-
-    # Login middleware (innermost - processes last on request, first on response)
-    app.middleware("http")(add_refresh_token_on_login)
