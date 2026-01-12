@@ -5,6 +5,8 @@ PY_PROJECT_NAME = "learn_fastapi_auth"
 python = "3.12"
 ruff = "latest"
 uv = "latest"
+node = "24"
+pnpm = "latest"
 
 [tasks.venv-create]
 description = "⭐ Create project virtual environment (.venv)"
@@ -98,7 +100,7 @@ depends = ['inst']
 [tasks.run-frontend]
 description = "Run Next.js frontend dev server at localhost:3000"
 run = """
-npm install && npm run dev
+pnpm install && pnpm run dev
 """
 
 [tasks.run]
@@ -112,7 +114,7 @@ BACKEND_PID=$!
 trap "kill $BACKEND_PID 2>/dev/null" EXIT
 
 # Install frontend dependencies and start frontend in foreground
-npm install && npm run dev
+pnpm install && pnpm run dev
 """
 depends = ['inst']
 
