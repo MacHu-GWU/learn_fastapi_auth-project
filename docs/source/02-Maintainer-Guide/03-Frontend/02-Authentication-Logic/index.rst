@@ -23,39 +23,39 @@ Authentication Logic / 认证逻辑
 
 **场景 1：先邮箱注册，后 Google 登录**
 
-.. code-block:: text
+初始状态（邮箱注册后）:
 
-    初始状态（邮箱注册后）:
-    ┌─────────────────────────────────────────────────────────────┐
-    │ email          │ hashed_password │ firebase_uid │ has_set_password │
-    ├─────────────────────────────────────────────────────────────┤
-    │ you@gmail.com  │ <用户设置>       │ NULL         │ TRUE             │
-    └─────────────────────────────────────────────────────────────┘
+- ``email``: you@gmail.com
+- ``hashed_password``: 用户设置的密码
+- ``firebase_uid``: NULL
+- ``has_set_password``: TRUE
 
-    Google OAuth 登录后:
-    ┌─────────────────────────────────────────────────────────────┐
-    │ email          │ hashed_password │ firebase_uid    │ has_set_password │
-    ├─────────────────────────────────────────────────────────────┤
-    │ you@gmail.com  │ <用户设置>       │ "abc123xyz..."  │ TRUE             │
-    └─────────────────────────────────────────────────────────────┘
+Google OAuth 登录后（系统自动关联同邮箱账号）:
+
+- ``email``: you@gmail.com
+- ``hashed_password``: 用户设置的密码（不变）
+- ``firebase_uid``: "abc123xyz..."（新增关联）
+- ``has_set_password``: TRUE（不变）
+
+结果：
 
 - 用户可以继续用两种方式登录
 - 用户可以修改密码（因为 ``has_set_password = TRUE``）
 
 **场景 2：先 Google 登录，后邮箱注册**
 
-.. code-block:: text
+Google OAuth 首次登录时自动创建账号:
 
-    Google OAuth 首次登录:
-    ┌─────────────────────────────────────────────────────────────┐
-    │ email          │ hashed_password │ firebase_uid    │ has_set_password │
-    ├─────────────────────────────────────────────────────────────┤
-    │ you@gmail.com  │ <随机生成>       │ "abc123xyz..."  │ FALSE            │
-    └─────────────────────────────────────────────────────────────┘
+- ``email``: you@gmail.com
+- ``hashed_password``: 随机生成（用户不知道）
+- ``firebase_uid``: "abc123xyz..."
+- ``has_set_password``: FALSE
+
+结果：
 
 - 用户尝试用同邮箱注册会失败（邮箱已存在）
 - 用户只能用 Google 登录
-- 用户可以通过 "Set Password" 功能设置密码
+- 用户可以通过 "Set Password" 功能设置密码，之后两种方式都可登录
 
 
 关键字段：has_set_password
@@ -221,37 +221,28 @@ API 端点
 用户体验流程
 ------------------------------------------------------------------------------
 
-.. code-block:: text
+**路径 A：邮箱/密码注册**
 
-    ┌─────────────────────────────────────────────────────────────────────┐
-    │                         用户登录系统                                  │
-    └─────────────────────────────────────────────────────────────────────┘
-                                    │
-                    ┌───────────────┴───────────────┐
-                    │                               │
-                    ▼                               ▼
-           ┌───────────────┐               ┌───────────────┐
-           │ 邮箱/密码注册   │               │ Google OAuth  │
-           └───────┬───────┘               └───────┬───────┘
-                   │                               │
-                   ▼                               ▼
-           has_set_password=TRUE           has_set_password=FALSE
-                   │                               │
-                   │                               │
-                   ▼                               ▼
-           ┌───────────────┐               ┌───────────────┐
-           │ Change Password│               │ Set Password  │
-           │ (需要当前密码)  │               │ (无需当前密码) │
-           └───────────────┘               └───────────────┘
-                                                   │
-                                                   ▼
-                                           has_set_password=TRUE
-                                                   │
-                                                   ▼
-                                           ┌───────────────┐
-                                           │ Change Password│
-                                           │ (需要当前密码)  │
-                                           └───────────────┘
+1. 用户使用邮箱和密码注册
+2. 系统设置 ``has_set_password = TRUE``
+3. 用户登录后在右上角下拉菜单看到 "Change password"
+4. 修改密码时需要输入当前密码验证
+
+**路径 B：Google OAuth 登录**
+
+1. 用户使用 Google 账号登录
+2. 系统自动创建账号，设置 ``has_set_password = FALSE``
+3. 用户登录后在右上角下拉菜单看到 "Set password"
+4. 设置密码时无需输入当前密码（因为用户不知道随机生成的密码）
+5. 设置成功后，系统更新 ``has_set_password = TRUE``
+6. 此后用户可以用两种方式登录，密码操作变为 "Change password"
+
+**路径 C：混合场景（先邮箱注册，后 Google 登录）**
+
+1. 用户先用邮箱/密码注册，``has_set_password = TRUE``
+2. 后来用同邮箱的 Google 账号登录
+3. 系统自动关联 ``firebase_uid``，但 ``has_set_password`` 保持 TRUE
+4. 用户始终看到 "Change password"，可以正常修改密码
 
 
 设计决策
