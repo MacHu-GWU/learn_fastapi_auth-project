@@ -128,9 +128,9 @@ export function Navbar() {
   // Don't render auth-dependent content until mounted (avoid hydration mismatch)
   if (!mounted) {
     return (
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="bg-[#111827] border-b border-[#1F2937]">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href={ROUTES.HOME} className="text-xl font-bold text-blue-600">
+          <Link href={ROUTES.HOME} className="text-xl font-bold text-[#3B82F6]">
             FastAPI Auth
           </Link>
           <div className="flex items-center gap-4">
@@ -143,9 +143,9 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="bg-white border-b border-gray-200">
+      <nav className="bg-[#111827] border-b border-[#1F2937]">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href={ROUTES.HOME} className="text-xl font-bold text-blue-600">
+          <Link href={ROUTES.HOME} className="text-xl font-bold text-[#3B82F6] hover:text-[#2563EB] transition-colors">
             FastAPI Auth
           </Link>
 
@@ -154,7 +154,7 @@ export function Navbar() {
               <>
                 <Link
                   href={ROUTES.DASHBOARD}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors text-sm font-medium"
                 >
                   App
                 </Link>
@@ -166,7 +166,7 @@ export function Navbar() {
                   onMouseLeave={() => setDropdownOpen(false)}
                 >
                   <button
-                    className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium font-mono cursor-pointer flex items-center gap-2"
+                    className="px-3 py-2 border border-[#374151] text-[#F1F5F9] rounded-lg hover:bg-[#1F2937] transition-colors text-sm font-medium font-mono cursor-pointer flex items-center gap-2"
                   >
                     {email ? abbreviateEmail(email) : 'Account'}
                     <svg
@@ -181,7 +181,7 @@ export function Navbar() {
 
                   {/* Dropdown Menu */}
                   <div
-                    className={`absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50 transition-all duration-200 ${
+                    className={`absolute right-0 mt-1 w-56 bg-[#111827] rounded-lg shadow-lg border border-[#1F2937] py-1 z-50 transition-all duration-200 ${
                       dropdownOpen
                         ? 'opacity-100 visible translate-y-0'
                         : 'opacity-0 invisible -translate-y-2'
@@ -189,32 +189,32 @@ export function Navbar() {
                   >
                     {/* Email display */}
                     {email && (
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm text-gray-500">Signed in as</p>
-                        <p className="text-sm font-medium text-gray-900 truncate">{email}</p>
+                      <div className="px-4 py-2 border-b border-[#1F2937]">
+                        <p className="text-sm text-[#64748B]">Signed in as</p>
+                        <p className="text-sm font-medium text-[#F1F5F9] truncate">{email}</p>
                       </div>
                     )}
 
                     {/* Password Action - Change or Set based on user type */}
                     <button
                       onClick={handlePasswordAction}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3 cursor-pointer"
+                      className="w-full px-4 py-2 text-left text-sm text-[#F1F5F9] hover:bg-[#1F2937] transition-colors flex items-center gap-3 cursor-pointer"
                     >
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                       </svg>
                       {userInfo?.is_oauth_user ? 'Set password' : 'Change password'}
                     </button>
 
                     {/* Divider */}
-                    <div className="border-t border-gray-100 my-1"></div>
+                    <div className="border-t border-[#1F2937] my-1"></div>
 
                     {/* Sign Out */}
                     <button
                       onClick={handleLogout}
-                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-3 cursor-pointer"
+                      className="w-full px-4 py-2 text-left text-sm text-[#F1F5F9] hover:bg-[#1F2937] transition-colors flex items-center gap-3 cursor-pointer"
                     >
-                      <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       Sign out
@@ -226,15 +226,15 @@ export function Navbar() {
               <>
                 <Link
                   href={ROUTES.SIGNIN}
-                  className="text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+                  className="text-[#94A3B8] hover:text-[#F1F5F9] transition-colors text-sm font-medium"
                 >
                   Sign In
                 </Link>
                 <Link
                   href={ROUTES.SIGNUP}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors text-sm font-medium"
                 >
-                  Create Account
+                  Get Started
                 </Link>
               </>
             )}
