@@ -7,8 +7,7 @@ import { isLoggedIn } from '@/lib/auth';
 import { apiRequest } from '@/lib/api';
 import { getErrorMessage, API_ENDPOINTS, ROUTES } from '@/constants';
 import { UserDataCard, EditDataModal } from '@/components/saas';
-import { AccountSettingsCard, ChangePasswordModal } from '@/components/user';
-import type { User, UserData } from '@/types';
+import type { UserData } from '@/types';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -16,11 +15,9 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState('');
-  const [userInfo, setUserInfo] = useState<User | null>(null);
 
   // Modal states
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   // Check auth and load data
   useEffect(() => {
@@ -29,22 +26,10 @@ export default function DashboardPage() {
       return;
     }
 
-    Promise.all([loadUserInfo(), loadUserData()]).then(() => {
+    loadUserData().then(() => {
       setLoading(false);
     });
   }, [router]);
-
-  const loadUserInfo = async () => {
-    try {
-      const response = await apiRequest(API_ENDPOINTS.USER.ME);
-      if (response.ok) {
-        const data: User = await response.json();
-        setUserInfo(data);
-      }
-    } catch (error) {
-      console.error('Error loading user info:', error);
-    }
-  };
 
   const loadUserData = async () => {
     try {
@@ -81,24 +66,12 @@ export default function DashboardPage() {
       {/* User Data Card */}
       <UserDataCard userData={userData} onEdit={() => setEditModalOpen(true)} />
 
-      {/* Account Settings Card */}
-      <AccountSettingsCard
-        isOAuthUser={userInfo?.is_oauth_user ?? false}
-        onChangePassword={() => setPasswordModalOpen(true)}
-      />
-
       {/* Edit Data Modal */}
       <EditDataModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         initialData={userData}
         onSave={setUserData}
-      />
-
-      {/* Change Password Modal */}
-      <ChangePasswordModal
-        isOpen={passwordModalOpen}
-        onClose={() => setPasswordModalOpen(false)}
       />
     </div>
   );
