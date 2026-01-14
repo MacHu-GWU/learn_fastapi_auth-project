@@ -34,6 +34,7 @@ export interface FirebaseLoginResponse {
   access_token: string;
   token_type: string;
   is_new_user: boolean;
+  email: string;
 }
 
 export interface TokenRefreshResponse {

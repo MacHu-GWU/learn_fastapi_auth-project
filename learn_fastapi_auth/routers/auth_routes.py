@@ -372,6 +372,7 @@ async def firebase_login(
             "access_token": access_token,
             "token_type": "bearer",
             "is_new_user": is_new_user,
+            "email": email,
         }
     )
     cookie_settings = get_refresh_token_cookie_settings(one.env.refresh_token_lifetime)

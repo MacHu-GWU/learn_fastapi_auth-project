@@ -95,9 +95,10 @@ function SignInContent() {
       const data = await response.json();
 
       if (response.ok) {
+        // Set email before token - setToken dispatches AUTH_CHANGE event synchronously,
+        // so email must be in localStorage before the event fires
+        setUserEmail(data.email);
         setToken(data.access_token);
-        // Try to get email from the response or use a placeholder
-        setUserEmail(data.email || 'Google User');
 
         const message = data.is_new_user
           ? 'Account created successfully!'
@@ -166,8 +167,10 @@ function SignInContent() {
       const data = await response.json();
 
       if (response.ok) {
-        setToken(data.access_token);
+        // Set email before token - setToken dispatches AUTH_CHANGE event synchronously,
+        // so email must be in localStorage before the event fires
         setUserEmail(email);
+        setToken(data.access_token);
 
         showToast('Login successful!', 'success');
         setTimeout(() => {

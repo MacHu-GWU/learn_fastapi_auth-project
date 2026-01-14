@@ -122,6 +122,7 @@ class FirebaseLoginResponse(BaseModel):
     is_new_user: bool = Field(
         default=False, description="True if this is a newly created user"
     )
+    email: str = Field(..., description="User's email address from Firebase")
 
 
 # =============================================================================
