@@ -53,8 +53,10 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         await self.request_verify(user, request)
 
         # Then set user as inactive until email is verified
+        # Also mark that user has set their own password (email registration)
         session: AsyncSession = self.user_db.session
         user.is_active = False
+        user.has_set_password = True  # User registered with their own password
         session.add(user)
         await session.commit()
         await session.refresh(user)
@@ -71,6 +73,20 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
 
         await send_password_reset_email(user.email, token)
         print(f"User {user.id} has forgot their password. Reset token: {token}")
+
+    async def on_after_reset_password(
+        self,
+        user: User,
+        request: Optional[Request] = None,
+    ) -> None:
+        """Called after a user resets their password."""
+        # Mark that user now has a password set
+        # This allows OAuth users to set a password via "forgot password" flow
+        session: AsyncSession = self.user_db.session
+        user.has_set_password = True
+        session.add(user)
+        await session.commit()
+        print(f"User {user.id} has reset their password. has_set_password set to True.")
 
     async def on_after_request_verify(
         self,

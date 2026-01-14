@@ -57,7 +57,10 @@ export const ERROR_MESSAGES: Record<string, string> = {
   FIREBASE_EMAIL_REQUIRED: 'Email is required for sign in. Please allow email access.',
 
   // OAuth user limitations
-  OAUTH_USER_NO_PASSWORD: 'You signed in with Google, so there is no password to change. Your account security is managed by Google.',
+  OAUTH_USER_NO_PASSWORD: 'You signed in with Google and haven\'t set a password yet. Use "Set Password" to create one.',
+
+  // Set password errors
+  SET_PASSWORD_ALREADY_HAS_PASSWORD: 'You have already set a password. Use "Change Password" instead.',
 
   // Generic fallback
   UNKNOWN_ERROR: 'An unexpected error occurred. Please try again.',

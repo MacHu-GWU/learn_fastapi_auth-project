@@ -28,10 +28,12 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
 
     @classmethod
     def model_validate(cls, obj, **kwargs):
-        """Override to compute is_oauth_user from firebase_uid."""
-        # Check if obj has firebase_uid attribute (from ORM model)
-        if hasattr(obj, "firebase_uid"):
+        """Override to compute is_oauth_user from has_set_password."""
+        # Check if obj has has_set_password attribute (from ORM model)
+        if hasattr(obj, "has_set_password"):
             # Create a dict copy and add is_oauth_user
+            # is_oauth_user = True means user has NOT set their own password
+            # (they only use OAuth login), so they cannot change password
             data = {
                 "id": obj.id,
                 "email": obj.email,
@@ -40,7 +42,7 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
                 "is_verified": obj.is_verified,
                 "created_at": getattr(obj, "created_at", None),
                 "updated_at": getattr(obj, "updated_at", None),
-                "is_oauth_user": obj.firebase_uid is not None,
+                "is_oauth_user": not obj.has_set_password,
             }
             return super().model_validate(data, **kwargs)
         return super().model_validate(obj, **kwargs)
@@ -99,10 +101,16 @@ class TokenRefreshResponse(BaseModel):
 # Password Change Schema
 # =============================================================================
 class ChangePasswordRequest(BaseModel):
-    """Schema for changing password."""
+    """Schema for changing password (requires current password)."""
 
     current_password: str = Field(..., description="Current password for verification")
     new_password: str = Field(..., min_length=8, description="New password")
+
+
+class SetPasswordRequest(BaseModel):
+    """Schema for setting password (for OAuth users who never set one)."""
+
+    new_password: str = Field(..., min_length=8, description="New password to set")
 
 
 # =============================================================================

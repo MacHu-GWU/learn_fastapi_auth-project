@@ -44,6 +44,7 @@ from ..schemas import (
     FirebaseLoginRequest,
     FirebaseLoginResponse,
     MessageResponse,
+    SetPasswordRequest,
     TokenRefreshResponse,
     UserCreate,
     UserRead,
@@ -251,6 +252,43 @@ async def change_password(
     return MessageResponse(message="Password changed successfully")
 
 
+@router.post(
+    "/api/auth/set-password",
+    response_model=MessageResponse,
+    tags=["auth"],
+)
+@limiter.limit(one.env.rate_limit_login)
+async def set_password(
+    request: Request,
+    data: SetPasswordRequest,
+    user: User = Depends(current_active_user),
+    user_manager=Depends(get_user_manager),
+):
+    """
+    Set password for OAuth users who haven't set one.
+
+    This allows users who originally signed up via Google/Apple OAuth
+    to set their own password, enabling email/password login as well.
+    """
+    # Check if user already has a password set
+    if user.has_set_password:
+        raise HTTPException(
+            status_code=400,
+            detail="SET_PASSWORD_ALREADY_HAS_PASSWORD",
+        )
+
+    # Set the new password
+    hashed_password = user_manager.password_helper.hash(data.new_password)
+    user.hashed_password = hashed_password
+    user.has_set_password = True
+
+    session = user_manager.user_db.session
+    session.add(user)
+    await session.commit()
+
+    return MessageResponse(message="Password set successfully")
+
+
 # =============================================================================
 # Firebase OAuth Login
 # =============================================================================
@@ -344,6 +382,7 @@ async def firebase_login(
                 is_verified=True,  # Firebase verified the email
                 is_superuser=False,
                 firebase_uid=firebase_uid,
+                has_set_password=False,  # OAuth user hasn't set their own password
             )
             session.add(user)
             await session.commit()

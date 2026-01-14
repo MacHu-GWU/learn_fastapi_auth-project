@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     FORGOT_PASSWORD: '/api/auth/forgot-password',
     RESET_PASSWORD: '/api/auth/reset-password',
     CHANGE_PASSWORD: '/api/auth/change-password',
+    SET_PASSWORD: '/api/auth/set-password',
   },
   USER: {
     ME: '/api/users/me',

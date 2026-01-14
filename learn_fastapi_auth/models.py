@@ -59,6 +59,12 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
     # Nullable because password-based users don't have a Firebase UID
     firebase_uid: orm.Mapped[str | None] = orm.mapped_column(sa.String(128), unique=True, nullable=True, index=True)
 
+    # Tracks whether user has set their own password
+    # True: user registered with email/password OR OAuth user later set a password
+    # False: user only signed up via OAuth (has random generated password)
+    # This determines if "Change Password" vs "Set Password" is shown
+    has_set_password: orm.Mapped[bool] = orm.mapped_column(sa.Boolean, default=False, server_default=sa.text("false"))
+
     # Relationships
     user_data: orm.Mapped[T.Optional["UserData"]] = orm.relationship(back_populates="user", cascade="all, delete-orphan", uselist=False)
     tokens: orm.Mapped[list["Token"]] = orm.relationship(back_populates="user", cascade="all, delete-orphan")
