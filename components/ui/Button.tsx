@@ -29,7 +29,7 @@ export function Button({
     primary: 'bg-brand text-white hover:bg-brand-hover focus:ring-brand',
     secondary: 'bg-elevated text-primary hover:bg-subtle focus:ring-subtle',
     outline: 'border border-subtle text-primary hover:bg-elevated focus:ring-subtle',
-    google: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-gray-500 gap-2',
+    google: 'bg-elevated text-primary border border-subtle hover:bg-subtle focus:ring-subtle gap-2',
   };
 
   const sizeStyles = {

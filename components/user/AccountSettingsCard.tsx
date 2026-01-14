@@ -21,9 +21,9 @@ export function AccountSettingsCard({ isOAuthUser, onChangePassword }: AccountSe
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">Account Settings</h2>
-      <p className="text-gray-600 mb-4">Manage your account security settings.</p>
+    <div className="bg-surface rounded-xl border border-default p-6">
+      <h2 className="text-xl font-semibold text-primary mb-2">Account Settings</h2>
+      <p className="text-secondary mb-4">Manage your account security settings.</p>
       <Button variant="secondary" onClick={handleChangePassword}>
         Change Password
       </Button>
