@@ -37,7 +37,6 @@ function ResetPasswordContent() {
 
     if (!token) return;
 
-    // Validate
     const newErrors: typeof errors = {};
 
     if (!validatePassword(password)) {
@@ -84,7 +83,7 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-gray-600">Redirecting...</div>
+        <div className="text-secondary">Redirecting...</div>
       </div>
     );
   }
@@ -92,8 +91,8 @@ function ResetPasswordContent() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-4">Reset Password</h1>
-        <p className="text-center text-gray-600 mb-8">
+        <h1 className="text-3xl font-bold text-center text-primary mb-4">Reset Password</h1>
+        <p className="text-center text-secondary mb-8">
           Enter your new password below.
         </p>
 
@@ -130,8 +129,8 @@ function ResetPasswordContent() {
           </Button>
         </form>
 
-        <p className="text-center mt-6 text-gray-600">
-          <Link href={ROUTES.SIGNIN} className="text-blue-600 hover:underline">
+        <p className="text-center mt-6 text-secondary">
+          <Link href={ROUTES.SIGNIN} className="text-brand hover:underline">
             Back to Sign In
           </Link>
         </p>
@@ -142,7 +141,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-secondary">Loading...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );

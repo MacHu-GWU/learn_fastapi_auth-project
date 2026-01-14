@@ -14,10 +14,10 @@ export function ToastContainer() {
             px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium
             transform transition-all duration-300 ease-in-out
             cursor-pointer min-w-[280px] max-w-[400px]
-            ${toast.type === 'success' ? 'bg-green-500' : ''}
+            ${toast.type === 'success' ? 'bg-accent' : ''}
             ${toast.type === 'error' ? 'bg-red-500' : ''}
             ${toast.type === 'warning' ? 'bg-yellow-500' : ''}
-            ${toast.type === 'info' ? 'bg-blue-500' : ''}
+            ${toast.type === 'info' ? 'bg-brand' : ''}
           `}
           onClick={() => removeToast(toast.id)}
         >

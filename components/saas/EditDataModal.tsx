@@ -19,7 +19,6 @@ export function EditDataModal({ isOpen, onClose, initialData, onSave }: EditData
   const [editText, setEditText] = useState(initialData);
   const [saving, setSaving] = useState(false);
 
-  // Reset editText when modal opens with new initialData
   useEffect(() => {
     if (isOpen) {
       setEditText(initialData);
@@ -57,7 +56,7 @@ export function EditDataModal({ isOpen, onClose, initialData, onSave }: EditData
         value={editText}
         onChange={(e) => setEditText(e.target.value)}
         placeholder="Enter your text here..."
-        className="w-full h-40 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+        className="w-full h-40 p-3 border border-default rounded-lg bg-elevated text-primary placeholder-muted focus:ring-2 focus:ring-brand focus:border-brand resize-none"
       />
       <div className="flex justify-end gap-3 mt-4">
         <Button variant="outline" onClick={onClose}>

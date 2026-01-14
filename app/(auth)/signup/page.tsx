@@ -26,7 +26,6 @@ export default function SignUpPage() {
     e.preventDefault();
     setErrors({});
 
-    // Validate
     const newErrors: typeof errors = {};
 
     if (!validateEmail(email)) {
@@ -84,7 +83,7 @@ export default function SignUpPage() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">Create Account</h1>
+        <h1 className="text-3xl font-bold text-center text-primary mb-8">Create Account</h1>
 
         <form onSubmit={handleSubmit}>
           <Input
@@ -130,9 +129,9 @@ export default function SignUpPage() {
           </Button>
         </form>
 
-        <p className="text-center mt-6 text-gray-600">
+        <p className="text-center mt-6 text-secondary">
           Already have an account?{' '}
-          <Link href={ROUTES.SIGNIN} className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNIN} className="text-brand hover:underline">
             Sign In
           </Link>
         </p>

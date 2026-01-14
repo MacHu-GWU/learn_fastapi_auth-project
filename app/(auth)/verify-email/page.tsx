@@ -53,7 +53,7 @@ function VerifyEmailContent() {
   if (state === 'loading') {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
-        <div className="text-gray-600">Verifying your email...</div>
+        <div className="text-secondary">Verifying your email...</div>
       </div>
     );
   }
@@ -62,14 +62,14 @@ function VerifyEmailContent() {
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
       {state === 'success' && (
         <>
-          <div className="text-6xl text-green-500 mb-4">&#10003;</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Email Verified!</h1>
-          <p className="text-gray-600 mb-8">
+          <div className="text-6xl text-accent mb-4">&#10003;</div>
+          <h1 className="text-3xl font-bold text-primary mb-4">Email Verified!</h1>
+          <p className="text-secondary mb-8">
             Your email has been successfully verified. You can now sign in to your account.
           </p>
           <Link
             href={ROUTES.SIGNIN}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors font-medium"
           >
             Sign In
           </Link>
@@ -78,14 +78,14 @@ function VerifyEmailContent() {
 
       {state === 'already_verified' && (
         <>
-          <div className="text-6xl text-green-500 mb-4">&#10003;</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Already Verified</h1>
-          <p className="text-gray-600 mb-8">
+          <div className="text-6xl text-accent mb-4">&#10003;</div>
+          <h1 className="text-3xl font-bold text-primary mb-4">Already Verified</h1>
+          <p className="text-secondary mb-8">
             Your email is already verified. You can sign in to your account.
           </p>
           <Link
             href={ROUTES.SIGNIN}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors font-medium"
           >
             Sign In
           </Link>
@@ -95,11 +95,11 @@ function VerifyEmailContent() {
       {state === 'error' && (
         <>
           <div className="text-6xl text-red-500 mb-4">&#10007;</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Verification Failed</h1>
-          <p className="text-gray-600 mb-8">{errorMessage}</p>
+          <h1 className="text-3xl font-bold text-primary mb-4">Verification Failed</h1>
+          <p className="text-secondary mb-8">{errorMessage}</p>
           <Link
             href={ROUTES.SIGNUP}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors font-medium"
           >
             Sign Up Again
           </Link>
@@ -111,7 +111,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-secondary">Loading...</div>}>
       <VerifyEmailContent />
     </Suspense>
   );

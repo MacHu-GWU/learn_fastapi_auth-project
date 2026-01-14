@@ -23,12 +23,12 @@ export function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-base disabled:opacity-60 disabled:cursor-not-allowed';
 
   const variantStyles = {
-    primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-    outline: 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
+    primary: 'bg-brand text-white hover:bg-brand-hover focus:ring-brand',
+    secondary: 'bg-elevated text-primary hover:bg-subtle focus:ring-subtle',
+    outline: 'border border-subtle text-primary hover:bg-elevated focus:ring-subtle',
     google: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-gray-500 gap-2',
   };
 

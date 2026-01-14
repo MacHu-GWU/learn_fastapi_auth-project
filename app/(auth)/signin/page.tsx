@@ -10,7 +10,6 @@ import { getErrorMessage } from '@/constants';
 import { signInWithGoogle } from '@/lib/firebase';
 import { API_ENDPOINTS, ROUTES, REDIRECT_DELAY } from '@/constants';
 
-// Google Icon SVG
 function GoogleIcon() {
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -34,7 +33,6 @@ function SignInContent() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  // Handle email verification from URL params
   useEffect(() => {
     const token = searchParams.get('token');
     const verified = searchParams.get('verified');
@@ -95,8 +93,6 @@ function SignInContent() {
       const data = await response.json();
 
       if (response.ok) {
-        // Set email before token - setToken dispatches AUTH_CHANGE event synchronously,
-        // so email must be in localStorage before the event fires
         setUserEmail(data.email);
         setToken(data.access_token);
 
@@ -133,7 +129,6 @@ function SignInContent() {
     e.preventDefault();
     setErrors({});
 
-    // Validate
     const newErrors: { email?: string; password?: string } = {};
 
     if (!validateEmail(email)) {
@@ -167,8 +162,6 @@ function SignInContent() {
       const data = await response.json();
 
       if (response.ok) {
-        // Set email before token - setToken dispatches AUTH_CHANGE event synchronously,
-        // so email must be in localStorage before the event fires
         setUserEmail(email);
         setToken(data.access_token);
 
@@ -192,9 +185,8 @@ function SignInContent() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">Sign In</h1>
+        <h1 className="text-3xl font-bold text-center text-primary mb-8">Sign In</h1>
 
-        {/* Google Sign In */}
         <Button
           variant="google"
           fullWidth
@@ -207,14 +199,12 @@ function SignInContent() {
           Sign in with Google
         </Button>
 
-        {/* Divider */}
         <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-gray-300" />
-          <span className="text-gray-500 text-sm">or sign in with email</span>
-          <div className="flex-1 h-px bg-gray-300" />
+          <div className="flex-1 h-px bg-default" />
+          <span className="text-muted text-sm">or sign in with email</span>
+          <div className="flex-1 h-px bg-default" />
         </div>
 
-        {/* Email/Password Form */}
         <form onSubmit={handleSubmit}>
           <Input
             label="Email"
@@ -244,9 +234,9 @@ function SignInContent() {
               id="remember-me"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-brand bg-surface border-default rounded focus:ring-brand"
             />
-            <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
+            <label htmlFor="remember-me" className="ml-2 text-sm text-secondary">
               Remember me for 30 days
             </label>
           </div>
@@ -261,15 +251,14 @@ function SignInContent() {
           </Button>
         </form>
 
-        {/* Links */}
-        <p className="text-center mt-6 text-gray-600">
-          <Link href={ROUTES.FORGOT_PASSWORD} className="text-blue-600 hover:underline">
+        <p className="text-center mt-6 text-secondary">
+          <Link href={ROUTES.FORGOT_PASSWORD} className="text-brand hover:underline">
             Forgot your password?
           </Link>
         </p>
-        <p className="text-center mt-2 text-gray-600">
+        <p className="text-center mt-2 text-secondary">
           Don&apos;t have an account?{' '}
-          <Link href={ROUTES.SIGNUP} className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNUP} className="text-brand hover:underline">
             Create Account
           </Link>
         </p>
@@ -280,7 +269,7 @@ function SignInContent() {
 
 export default function SignInPage() {
   return (
-    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-secondary">Loading...</div>}>
       <SignInContent />
     </Suspense>
   );

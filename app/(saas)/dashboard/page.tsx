@@ -16,10 +16,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState('');
 
-  // Modal states
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  // Check auth and load data
   useEffect(() => {
     if (!isLoggedIn()) {
       router.push(`${ROUTES.SIGNIN}?error=login_required`);
@@ -50,7 +48,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
+        <div className="text-secondary">Loading...</div>
       </div>
     );
   }
@@ -59,8 +57,8 @@ export default function DashboardPage() {
     <div className="max-w-4xl mx-auto px-4 py-12">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Personal Data</h1>
-        <p className="text-gray-600">This is your private space. Only you can see and edit this content.</p>
+        <h1 className="text-3xl font-bold text-primary mb-2">Your Personal Data</h1>
+        <p className="text-secondary">This is your private space. Only you can see and edit this content.</p>
       </div>
 
       {/* User Data Card */}

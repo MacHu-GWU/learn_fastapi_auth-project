@@ -20,9 +20,9 @@ export default function Home() {
       <section className="flex-1 flex flex-col items-center justify-center px-4 py-16">
         <div className="max-w-3xl mx-auto text-center">
           {/* Terminal-style badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full border border-[#1F2937] bg-[#111827]">
-            <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-            <span className="text-sm font-mono text-[#94A3B8]">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full border border-default bg-surface">
+            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+            <span className="text-sm font-mono text-secondary">
               Production-ready SaaS Template
             </span>
           </div>
@@ -31,11 +31,11 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
             <span className="text-gradient">Ship faster</span>
             <br />
-            <span className="text-[#F1F5F9]">with auth solved</span>
+            <span className="text-primary">with auth solved</span>
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-[#94A3B8] mb-10 max-w-xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-secondary mb-10 max-w-xl mx-auto leading-relaxed">
             A minimal, production-ready authentication template.
             <br className="hidden md:block" />
             Fork it. Build on it. Ship it.
@@ -47,7 +47,7 @@ export default function Home() {
               {loggedIn ? (
                 <Link
                   href={ROUTES.DASHBOARD}
-                  className="group inline-flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors font-medium glow-primary"
+                  className="group inline-flex items-center gap-2 px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors font-medium glow-brand"
                 >
                   Go to Dashboard
                   <svg
@@ -63,7 +63,7 @@ export default function Home() {
                 <>
                   <Link
                     href={ROUTES.SIGNUP}
-                    className="group inline-flex items-center gap-2 px-6 py-3 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors font-medium glow-primary"
+                    className="group inline-flex items-center gap-2 px-6 py-3 bg-brand text-white rounded-lg hover:bg-brand-hover transition-colors font-medium glow-brand"
                   >
                     Get Started
                     <svg
@@ -77,7 +77,7 @@ export default function Home() {
                   </Link>
                   <Link
                     href={ROUTES.SIGNIN}
-                    className="inline-flex items-center gap-2 px-6 py-3 border border-[#374151] text-[#F1F5F9] rounded-lg hover:bg-[#111827] transition-colors font-medium"
+                    className="inline-flex items-center gap-2 px-6 py-3 border border-subtle text-primary rounded-lg hover:bg-surface transition-colors font-medium"
                   >
                     Sign In
                   </Link>
@@ -89,44 +89,44 @@ export default function Home() {
       </section>
 
       {/* Feature highlights */}
-      <section className="px-4 py-12 border-t border-[#1F2937]">
+      <section className="px-4 py-12 border-t border-default">
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Feature 1 */}
-            <div className="p-5 rounded-lg border border-[#1F2937] bg-[#111827] hover:border-[#374151] transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center mb-4">
-                <svg className="w-5 h-5 text-[#3B82F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-5 rounded-lg border border-default bg-surface hover:border-subtle transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center mb-4">
+                <svg className="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-[#F1F5F9] mb-2">Auth Built-in</h3>
-              <p className="text-sm text-[#94A3B8] leading-relaxed">
+              <h3 className="font-semibold text-primary mb-2">Auth Built-in</h3>
+              <p className="text-sm text-secondary leading-relaxed">
                 Email/password + Google OAuth. JWT refresh. Email verification. Ready to go.
               </p>
             </div>
 
             {/* Feature 2 */}
-            <div className="p-5 rounded-lg border border-[#1F2937] bg-[#111827] hover:border-[#374151] transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-[#10B981]/10 flex items-center justify-center mb-4">
-                <svg className="w-5 h-5 text-[#10B981]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-5 rounded-lg border border-default bg-surface hover:border-subtle transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-[#F1F5F9] mb-2">Security First</h3>
-              <p className="text-sm text-[#94A3B8] leading-relaxed">
+              <h3 className="font-semibold text-primary mb-2">Security First</h3>
+              <p className="text-sm text-secondary leading-relaxed">
                 CSRF protection. Rate limiting. Secure token handling. Production hardened.
               </p>
             </div>
 
             {/* Feature 3 */}
-            <div className="p-5 rounded-lg border border-[#1F2937] bg-[#111827] hover:border-[#374151] transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-[#3B82F6]/10 flex items-center justify-center mb-4">
-                <svg className="w-5 h-5 text-[#3B82F6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-5 rounded-lg border border-default bg-surface hover:border-subtle transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center mb-4">
+                <svg className="w-5 h-5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-[#F1F5F9] mb-2">Modern Stack</h3>
-              <p className="text-sm text-[#94A3B8] leading-relaxed">
+              <h3 className="font-semibold text-primary mb-2">Modern Stack</h3>
+              <p className="text-sm text-secondary leading-relaxed">
                 Next.js + FastAPI + TypeScript. Deploy to Vercel in minutes.
               </p>
             </div>

@@ -39,7 +39,6 @@ export function SetPasswordModal({ isOpen, onClose, onSuccess }: SetPasswordModa
     e.preventDefault();
     setErrors({});
 
-    // Validate
     const newErrors: typeof errors = {};
 
     if (!validatePassword(newPassword)) {
@@ -84,7 +83,7 @@ export function SetPasswordModal({ isOpen, onClose, onSuccess }: SetPasswordModa
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Set Password">
-      <p className="text-sm text-gray-600 mb-4">
+      <p className="text-sm text-secondary mb-4">
         Create a password to enable email/password sign in alongside Google.
       </p>
       <form onSubmit={handleSubmit}>

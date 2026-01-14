@@ -32,7 +32,6 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      // For security, show the same message regardless of whether email exists
       showToast('If an account exists with this email, you will receive a password reset link.', 'success');
       setEmail('');
     } catch (error) {
@@ -46,8 +45,8 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-4">Forgot Password</h1>
-        <p className="text-center text-gray-600 mb-8">
+        <h1 className="text-3xl font-bold text-center text-primary mb-4">Forgot Password</h1>
+        <p className="text-center text-secondary mb-8">
           Enter your email address and we&apos;ll send you a link to reset your password.
         </p>
 
@@ -73,9 +72,9 @@ export default function ForgotPasswordPage() {
           </Button>
         </form>
 
-        <p className="text-center mt-6 text-gray-600">
+        <p className="text-center mt-6 text-secondary">
           Remember your password?{' '}
-          <Link href={ROUTES.SIGNIN} className="text-blue-600 hover:underline">
+          <Link href={ROUTES.SIGNIN} className="text-brand hover:underline">
             Sign In
           </Link>
         </p>

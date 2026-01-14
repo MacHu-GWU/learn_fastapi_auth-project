@@ -24,9 +24,9 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
 
 export function PageLoading({ message = 'Loading...' }: { message?: string }) {
   return (
-    <div className="fixed inset-0 bg-white/90 flex flex-col items-center justify-center z-50">
-      <Spinner size="lg" className="text-blue-600" />
-      <span className="mt-4 text-gray-600">{message}</span>
+    <div className="fixed inset-0 bg-base/90 flex flex-col items-center justify-center z-50">
+      <Spinner size="lg" className="text-brand" />
+      <span className="mt-4 text-secondary">{message}</span>
     </div>
   );
 }

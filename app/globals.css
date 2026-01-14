@@ -18,7 +18,36 @@
    - Headings: Inter (modern, clean)
    - Code/Mono: JetBrains Mono (developer aesthetic)
 
+   Usage:
+   - bg-base, bg-surface, bg-elevated (backgrounds)
+   - text-primary, text-secondary, text-muted (text colors)
+   - border-default, border-subtle (borders)
+   - bg-brand, bg-brand-hover (primary buttons)
+   - bg-accent, text-accent (success/terminal elements)
+
 ============================================================================ */
+
+@theme {
+  /* Background colors */
+  --color-base: #0A0F1C;
+  --color-surface: #111827;
+  --color-elevated: #1F2937;
+
+  /* Brand colors */
+  --color-brand: #3B82F6;
+  --color-brand-hover: #2563EB;
+  --color-accent: #10B981;
+  --color-accent-hover: #059669;
+
+  /* Text colors */
+  --color-primary: #F1F5F9;
+  --color-secondary: #94A3B8;
+  --color-muted: #64748B;
+
+  /* Border colors */
+  --color-default: #1F2937;
+  --color-subtle: #374151;
+}
 
 /* Base styles */
 html {
@@ -26,8 +55,8 @@ html {
 }
 
 body {
-  background-color: #0A0F1C;
-  color: #F1F5F9;
+  background-color: var(--color-base);
+  color: var(--color-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
 }
@@ -49,7 +78,7 @@ body {
 }
 
 /* Subtle glow effect for primary elements */
-.glow-primary {
+.glow-brand {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
 }
 
@@ -59,7 +88,7 @@ body {
 
 /* Text gradient for hero headings */
 .text-gradient {
-  background: linear-gradient(135deg, #F1F5F9 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-brand) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -67,7 +96,7 @@ body {
 
 /* Focus styles for accessibility */
 :focus-visible {
-  outline: 2px solid #3B82F6;
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
@@ -84,6 +113,6 @@ body {
 
 /* Selection color */
 ::selection {
-  background: #3B82F6;
-  color: #F1F5F9;
+  background: var(--color-brand);
+  color: var(--color-primary);
 }

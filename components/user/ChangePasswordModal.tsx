@@ -41,7 +41,6 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     e.preventDefault();
     setErrors({});
 
-    // Validate
     const newErrors: typeof errors = {};
 
     if (!currentPassword) {
